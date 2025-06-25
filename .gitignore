@@ -1,0 +1,15 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+venv/
+env/
+.venv/
+*.log
+local_settings.py
+db.sqlite3
+media/
+staticfiles/
+.env
+secrets.json
