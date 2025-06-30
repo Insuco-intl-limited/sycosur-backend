@@ -13,5 +13,6 @@ media/
 staticfiles/
 .envs/.env.local
 .envs/.env.prod
+.envs/.env.prod.example
 secrets.json
 .idea
