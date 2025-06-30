@@ -3,7 +3,6 @@ from os import getenv, path
 from dotenv import load_dotenv
 
 from .base import *  # noqa
-
 from .base import BASE_DIR
 
 local_env_file = path.join(BASE_DIR, ".envs", ".env.local")
@@ -23,6 +22,13 @@ CSRF_TRUSTED_ORIGINS = ["http://localhost:8080"]
 
 
 ALLOWED_HOSTS = ["localhost", "127.0.0.1", "0.0.0.0"]
+
+# CORS settings for development
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:8080",
+    "http://127.0.0.1:8080",
+]
 
 ADMIN_URL = getenv("DJANGO_ADMIN_URL")
 EMAIL_BACKEND = "djcelery_email.backends.CeleryEmailBackend"

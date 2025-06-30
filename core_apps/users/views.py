@@ -1,6 +1,8 @@
 import logging
 from typing import Optional
+
 from django.conf import settings
+
 from djoser.social.views import ProviderAuthView
 from rest_framework import status
 from rest_framework.request import Request

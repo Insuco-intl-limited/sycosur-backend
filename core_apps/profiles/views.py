@@ -1,20 +1,24 @@
 from typing import List
+
 from django.contrib.auth import get_user_model
 from django.db.models import QuerySet
 from django.http import Http404
+
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, generics
-from rest_framework import status
+from rest_framework import filters, generics, status
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
+
 from core_apps.common.renderers import GenericJSONRenderer
+
 from .models import Profile
 from .serializers import (
     AvatarUploadSerializer,
     ProfileSerializer,
     UpdateProfileSerializer,
 )
+
 # from .tasks import upload_avatar_to_cloudinary
 
 User = get_user_model()

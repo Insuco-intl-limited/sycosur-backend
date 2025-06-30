@@ -1,6 +1,6 @@
-from pathlib import Path
-from os import getenv, path
 from datetime import timedelta
+from os import getenv, path
+from pathlib import Path
 
 from dotenv import load_dotenv
 
@@ -51,6 +51,7 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -146,7 +147,6 @@ FILE_UPLOAD_DIRECTORY_PERMISSIONS = None
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = "/static/"
-
 STATIC_ROOT = str(BASE_DIR / "staticfiles")
 
 
@@ -185,9 +185,9 @@ CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 CELERY_WORKER_SEND_TASK_EVENTS = True
 
 CELERY_BEAT_SCHEDULE = {
-    "update-reputations-every-day": {
-        "task": "update_all_reputations",
-    }
+    # "update-reputations-every-day": {
+    #     "task": "update_all_reputations",
+    # }
 }
 
 

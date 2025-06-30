@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
-from djoser.serializers import UserCreateSerializer, UserSerializer
+
 from django_countries.serializer_fields import CountryField
+from djoser.serializers import UserCreateSerializer, UserSerializer
 from phonenumber_field.serializerfields import PhoneNumberField
 from rest_framework import serializers
 

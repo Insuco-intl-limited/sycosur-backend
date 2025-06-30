@@ -1,11 +1,12 @@
-from autoslug import AutoSlugField
 # from cloudinary.models import CloudinaryField
 from django.contrib.auth import get_user_model
 from django.db import models
+from django.db.models import Avg
 from django.utils.translation import gettext_lazy as _
+
+from autoslug import AutoSlugField
 from django_countries.fields import CountryField
 from phonenumber_field.modelfields import PhoneNumberField
-from django.db.models import Avg
 
 from core_apps.common.models import TimeStampedModel
 
@@ -92,5 +93,3 @@ class Profile(TimeStampedModel):
 
     def __str__(self) -> str:
         return f"{self.user.first_name}'s Profile"
-
-

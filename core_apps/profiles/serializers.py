@@ -10,7 +10,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     username = serializers.ReadOnlyField(source="user.username")
     full_name = serializers.ReadOnlyField(source="user.get_full_name")
     country_of_origin = CountryField(name_only=True)
-    #avatar = serializers.SerializerMethodField()
+    # avatar = serializers.SerializerMethodField()
     date_joined = serializers.DateTimeField(source="user.date_joined", read_only=True)
     # apartment = serializers.SerializerMethodField()
     # average_rating = serializers.SerializerMethodField()

@@ -39,7 +39,7 @@ class UserManager(DjangoUserManager):
         username: str,
         email: str | None = None,
         password: str | None = None,
-        **extra_fields
+        **extra_fields,
     ):
         extra_fields.setdefault("is_staff", False)
         extra_fields.setdefault("is_superuser", False)
@@ -50,7 +50,7 @@ class UserManager(DjangoUserManager):
         username: str,
         email: str | None = None,
         password: str | None = None,
-        **extra_fields
+        **extra_fields,
     ):
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)

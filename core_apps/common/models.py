@@ -1,8 +1,8 @@
 import uuid
-from django.db import models
+
 from django.contrib.auth import get_user_model
+from django.db import IntegrityError, models
 from django.utils.translation import gettext_lazy as _
-from django.db import IntegrityError
 
 User = get_user_model()
 
@@ -16,8 +16,6 @@ class TimeStampedModel(models.Model):
     class Meta:
         abstract = True
         ordering = ["-created_at", "-updated_at"]
-
-
 
     # def __str__(self) -> str:
     #     return f"{self.content_object} viewed by {self.user.get_full_name if self.user else 'Anonymous'} from IP {self.viewer_ip}"

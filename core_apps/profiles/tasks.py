@@ -1,6 +1,9 @@
 from uuid import UUID
+
 from celery import shared_task
+
 from .models import Profile
+
 # import cloudinary.uploader
 
 

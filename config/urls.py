@@ -1,10 +1,11 @@
-from django.contrib import admin
 from django.conf import settings
-from django.urls import path, include
+from django.conf.urls.static import static
+from django.contrib import admin
+from django.urls import include, path
+
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework import permissions
-
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -30,6 +31,9 @@ urlpatterns = [
     path("api/v1/profiles/", include("core_apps.profiles.urls")),
 ]
 
-# admin.site.site_header = "Alpha Apartments Admin"
-# admin.site.site_title = "Alpha Apartments Admin Portal"
-# admin.site.index_title = "Welcome to Alpha Apartments Admin Portal"
+admin.site.site_header = "Sycosur2.0"
+admin.site.site_title = "Sycosur Admin Portal"
+admin.site.index_title = "Welcome to Sycosur 2.0"
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -11,5 +11,7 @@ local_settings.py
 db.sqlite3
 media/
 staticfiles/
-.env
+.envs/.env.local
+.envs/.env.prod
 secrets.json
+.idea
