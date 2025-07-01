@@ -7,8 +7,6 @@ from django.http import Http404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, generics, status
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.response import Response
-from rest_framework.views import APIView
 
 from core_apps.common.renderers import GenericJSONRenderer
 
@@ -18,6 +16,10 @@ from .serializers import (
     ProfileSerializer,
     UpdateProfileSerializer,
 )
+
+# from rest_framework.response import Response
+# from rest_framework.views import APIView
+
 
 # from .tasks import upload_avatar_to_cloudinary
 
@@ -37,13 +39,13 @@ class ProfileListAPIView(generics.ListAPIView):
     object_label = "profiles"
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     search_fields = ["user__username", "user__first_name", "user__last_name"]
-    filterset_fields = ["occupation", "gender", "country_of_origin"]
+    filterset_fields = ["odk_role", "gender", "country_of_origin"]
 
     def get_queryset(self) -> List[Profile]:
         return (
             Profile.objects.exclude(user__is_staff=True)
             .exclude(user__is_superuser=True)
-            .filter(occupation=Profile.Occupation.TENANT)
+            .filter(odk_role=Profile.ODKRole.DATA_COLLECTOR)
         )
 
 
@@ -109,11 +111,11 @@ class ProfileUpdateAPIView(generics.RetrieveUpdateAPIView):
 #     object_label = "non_tenant_profiles"
 #     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
 #     search_fields = ["user__username", "user__first_name", "user__last_name"]
-#     filterset_fields = ["occupation", "gender", "country_of_origin"]
+#     filterset_fields = ["odk_role", "gender", "country_of_origin"]
 #
 #     def get_queryset(self) -> List[Profile]:
 #         return (
 #             Profile.objects.exclude(user__is_staff=True)
 #             .exclude(user__is_superuser=True)
-#             .exclude(occupation=Profile.Occupation.TENANT)
+#             .exclude(odk_role=Profile.ODKRole.DATA_COLLECTOR)
 #         )

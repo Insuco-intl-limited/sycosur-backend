@@ -18,12 +18,12 @@ class CustomUserSerializer(UserSerializer):
     full_name = serializers.ReadOnlyField(source="get_full_name")
     gender = serializers.ReadOnlyField(source="profile.gender")
     slug = serializers.ReadOnlyField(source="profile.slug")
-    occupation = serializers.ReadOnlyField(source="profile.occupation")
+    odk_role = serializers.ReadOnlyField(source="profile.odk_role")
     phone_number = PhoneNumberField(source="profile.phone_number")
     country = CountryField(source="profile.country_of_origin")
     city = serializers.ReadOnlyField(source="profile.city_of_origin")
     avatar = serializers.ReadOnlyField(source="profile.avatar.url")
-    reputation = serializers.ReadOnlyField(source="profile.reputation")
+    # reputation = serializers.ReadOnlyField(source="profile.reputation")
 
     class Meta(UserSerializer.Meta):
         model = User
@@ -36,11 +36,10 @@ class CustomUserSerializer(UserSerializer):
             "slug",
             "full_name",
             "gender",
-            "occupation",
+            "odk_role",
             "phone_number",
             "country",
             "city",
-            "reputation",
             "avatar",
             "date_joined",
         ]

@@ -18,8 +18,11 @@ if path.isfile(prod_env_file):
 # Application definition
 
 DJANGO_APPS = [
+    "config.settings.custom_app.CustomAdminInterfaceConfig",
+    "colorfield",
     "django.contrib.admin",
-    "django.contrib.auth",
+    "config.settings.custom_app.CustomAuthConfig",
+    #"django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
@@ -33,11 +36,11 @@ THIRD_PARTY_APPS = [
     "phonenumber_field",
     "drf_yasg",
     "djoser",
-    "social_django",
-    "taggit",
+    #"social_django",
+    #"taggit",
     "django_filters",
     "djcelery_email",
-    "django_celery_beat",
+    #"django_celery_beat",
 ]
 
 LOCAL_APPS = [

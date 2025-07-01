@@ -28,7 +28,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             "country_of_origin",
             "city_of_origin",
             "bio",
-            "occupation",
+            "odk_role",
             "date_joined",
             # "avatar",
             # "apartment",
@@ -67,7 +67,7 @@ class UpdateProfileSerializer(serializers.ModelSerializer):
             "country_of_origin",
             "city_of_origin",
             "bio",
-            "occupation",
+            "odk_role",
             "phone_number",
         ]
 

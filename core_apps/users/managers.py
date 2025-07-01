@@ -60,5 +60,15 @@ class UserManager(DjangoUserManager):
 
         if extra_fields.get("is_superuser") is not True:
             raise ValueError(_("Superuser must have is_superuser=True."))
-
-        return self._create_user(username, email, password, **extra_fields)
+        try:
+            existing_user = self.model.objects.get(email=email)
+            # If user exists, update fields and return
+            existing_user.is_staff = True
+            existing_user.is_superuser = True
+            if password:
+                existing_user.set_password(password)
+            existing_user.save()
+            return existing_user
+        except self.model.DoesNotExist:
+            # If user doesn't exist, create new one
+            return self._create_user(username, email, password, **extra_fields)

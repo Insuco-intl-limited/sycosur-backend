@@ -1,7 +1,8 @@
 # from cloudinary.models import CloudinaryField
 from django.contrib.auth import get_user_model
 from django.db import models
-from django.db.models import Avg
+
+# from django.db.models import Avg
 from django.utils.translation import gettext_lazy as _
 
 from autoslug import AutoSlugField
@@ -32,38 +33,22 @@ class Profile(TimeStampedModel):
             _("Other"),
         )
 
-    class Occupation(models.TextChoices):
-        Mason = (
-            "mason",
-            _("Mason"),
+    class ODKRole(models.TextChoices):
+        DATA_COLLECTOR = (
+            "data_collector",
+            _("Data Collector"),
         )
-        Carpenter = (
-            "carpenter",
-            _("Carpenter"),
+        SUPERVISOR = (
+            "supervisor",
+            _("Supervisor"),
         )
-        Plumber = (
-            "plumber",
-            _("Plumber"),
+        MANAGER = (
+            "manager",
+            _("Manager"),
         )
-        Roofer = (
-            "roofer",
-            _("Roofer"),
-        )
-        Painter = (
-            "painter",
-            _("Painter"),
-        )
-        Electrician = (
-            "electrician",
-            _("Electrician"),
-        )
-        HVAC = (
-            "hvac",
-            _("HVAC"),
-        )
-        TENANT = (
-            "tenant",
-            _("Tenant"),
+        ADMINISTRATOR = (
+            "administrator",
+            _("Administrator"),
         )
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
@@ -75,11 +60,11 @@ class Profile(TimeStampedModel):
         default=Gender.OTHER,
     )
     bio = models.TextField(verbose_name=_("Bio"), blank=True, null=True)
-    occupation = models.CharField(
-        verbose_name=_("Occupation"),
+    odk_role = models.CharField(
+        verbose_name=_("ODK Role"),
         max_length=20,
-        choices=Occupation.choices,
-        default=Occupation.TENANT,
+        choices=ODKRole.choices,
+        default=ODKRole.DATA_COLLECTOR,
     )
     phone_number = PhoneNumberField(
         verbose_name=_("Phone Number"), max_length=30, default="+250784123456"
