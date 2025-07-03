@@ -45,9 +45,39 @@ check-migrations: ## Vérifier si des migrations sont nécessaires
 test: ## Exécuter les tests
 	python manage.py test
 
-.PHONY: serve
-serve: ## Lancer le serveur de développement
-	python manage.py runserver
+
+.PHONY: startapp
+startapp: ## Créer une nouvelle application dans core_apps (usage: make startapp APP_NAME=nom_app)
+	@if [ -z "$(APP_NAME)" ]; then \
+		echo "❌ Erreur: Veuillez spécifier le nom de l'application avec APP_NAME=nom_app"; \
+		echo "Exemple: make startapp-core APP_NAME=blog"; \
+		exit 1; \
+	fi
+	@if [ -d "core_apps/$(APP_NAME)" ]; then \
+		echo "❌ Erreur: L'application core_apps/$(APP_NAME) existe déjà"; \
+		exit 1; \
+	fi
+	@if [ -d "$(APP_NAME)" ]; then \
+		echo "❌ Erreur: Le dossier $(APP_NAME) existe déjà"; \
+		exit 1; \
+	fi
+	@echo "🚀 Création de l'application $(APP_NAME)..."
+	@python manage.py startapp $(APP_NAME) || (echo "❌ Erreur lors de la création de l'app" && exit 1)
+	@echo "📁 Création du dossier core_apps (si nécessaire)..."
+	@mkdir -p core_apps
+	@echo "📦 Déplacement de $(APP_NAME) vers core_apps/..."
+	@mv $(APP_NAME) core_apps/
+	@echo "⚙️  Modification du fichier apps.py..."
+	@if [ "$$(uname)" = "Darwin" ]; then \
+		sed -i '' "s/name = '$(APP_NAME)'/name = 'core_apps.$(APP_NAME)'/" core_apps/$(APP_NAME)/apps.py; \
+	else \
+		sed -i "s/name = '$(APP_NAME)'/name = 'core_apps.$(APP_NAME)'/" core_apps/$(APP_NAME)/apps.py; \
+	fi
+	@echo "✅ Application 'core_apps.$(APP_NAME)' créée avec succès!"
+	@echo ""
+	@echo "📝 Action restante :"
+	@echo "   - Ajouter 'core_apps.$(APP_NAME)' à INSTALLED_APPS dans settings.py"
+
 
 .PHONY: clean
 clean: ## Nettoyer les fichiers temporaires et compilés
