@@ -61,22 +61,14 @@ startapp: ## Créer une nouvelle application dans core_apps (usage: make startap
 		echo "❌ Erreur: Le dossier $(APP_NAME) existe déjà"; \
 		exit 1; \
 	fi
-	@echo "🚀 Création de l'application $(APP_NAME)..."
 	@python manage.py startapp $(APP_NAME) || (echo "❌ Erreur lors de la création de l'app" && exit 1)
-	@echo "📁 Création du dossier core_apps (si nécessaire)..."
 	@mkdir -p core_apps
-	@echo "📦 Déplacement de $(APP_NAME) vers core_apps/..."
 	@mv $(APP_NAME) core_apps/
-	@echo "⚙️  Modification du fichier apps.py..."
-	@if [ "$$(uname)" = "Darwin" ]; then \
-		sed -i '' "s/name = '$(APP_NAME)'/name = 'core_apps.$(APP_NAME)'/" core_apps/$(APP_NAME)/apps.py; \
-	else \
-		sed -i "s/name = '$(APP_NAME)'/name = 'core_apps.$(APP_NAME)'/" core_apps/$(APP_NAME)/apps.py; \
-	fi
 	@echo "✅ Application 'core_apps.$(APP_NAME)' créée avec succès!"
 	@echo ""
-	@echo "📝 Action restante :"
+	@echo "📝 Actions restantes :"
 	@echo "   - Ajouter 'core_apps.$(APP_NAME)' à INSTALLED_APPS dans settings.py"
+	@echo "   - Modifier le name en 'core_apps.$(APP_NAME)' dans 'core_apps/$(APP_NAME)/apps.py"
 
 
 .PHONY: clean
