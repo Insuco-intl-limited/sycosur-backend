@@ -22,7 +22,7 @@ DJANGO_APPS = [
     "colorfield",
     "django.contrib.admin",
     "config.settings.custom_app.CustomAuthConfig",
-    #"django.contrib.auth",
+    # "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
@@ -36,11 +36,12 @@ THIRD_PARTY_APPS = [
     "phonenumber_field",
     "drf_yasg",
     "djoser",
-    #"social_django",
-    #"taggit",
+    "social_django",
+    "rosetta",
+    # "taggit",
     "django_filters",
     "djcelery_email",
-    #"django_celery_beat",
+    # "django_celery_beat",
 ]
 
 LOCAL_APPS = [
@@ -55,7 +56,7 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "corsheaders.middleware.CorsMiddleware",
-    'django.middleware.locale.LocaleMiddleware',
+    "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -137,6 +138,14 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "en-us"
 
+LANGUAGES = [
+    ('en', 'English'),
+    ('fr', 'Français'),
+    ('es', 'Español'),
+]
+
+LOCALE_PATHS = [BASE_DIR / 'locale']
+
 TIME_ZONE = "Africa/Kigali"
 
 USE_I18N = True
@@ -152,6 +161,14 @@ FILE_UPLOAD_DIRECTORY_PERMISSIONS = None
 
 STATIC_URL = "/static/"
 STATIC_ROOT = str(BASE_DIR / "staticfiles")
+
+STATICFILES_FINDERS = [
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+]
+
+# Optionnel : pour éviter les avertissements en production
+STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 
 
 # Default primary key field type

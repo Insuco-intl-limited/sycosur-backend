@@ -25,17 +25,17 @@ class User(AbstractUser):
     email = models.EmailField(
         verbose_name=_("Email Address"), unique=True, db_index=True
     )
-    username = models.CharField(
-        verbose_name=_("Username"),
-        max_length=60,
-        unique=True,
-        validators=[UsernameValidator],
-    )
+    # username = models.CharField(
+    #     verbose_name=_("Username"),
+    #     max_length=60,
+    #     unique=True,
+    #     validators=[UsernameValidator],
+    # )
 
     EMAIL_FIELD = "email"
     USERNAME_FIELD = "email"
 
-    REQUIRED_FIELDS = ["username", "first_name", "last_name"]
+    REQUIRED_FIELDS = ["first_name", "last_name"]
 
     objects = UserManager()
 

@@ -38,7 +38,7 @@ class ProfileListAPIView(generics.ListAPIView):
     pagination_class = StandardResultsSetPagination
     object_label = "profiles"
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
-    search_fields = ["user__username", "user__first_name", "user__last_name"]
+    search_fields = [ "user__first_name", "user__last_name"]
     filterset_fields = ["odk_role", "gender", "country_of_origin"]
 
     def get_queryset(self) -> List[Profile]:
