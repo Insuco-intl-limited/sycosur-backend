@@ -37,7 +37,7 @@ THIRD_PARTY_APPS = [
     "drf_yasg",
     "djoser",
     "social_django",
-    "rosetta",
+    #"rosetta",
     # "taggit",
     "django_filters",
     "djcelery_email",
@@ -48,6 +48,7 @@ LOCAL_APPS = [
     "core_apps.users",
     "core_apps.common",
     "core_apps.profiles",
+    "core_apps.odk"
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
