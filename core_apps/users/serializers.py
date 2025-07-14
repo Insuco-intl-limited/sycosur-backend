@@ -23,7 +23,7 @@ class CustomUserSerializer(UserSerializer):
     country = CountryField(source="profile.country_of_origin")
     city = serializers.ReadOnlyField(source="profile.city_of_origin")
     avatar = serializers.ReadOnlyField(source="profile.avatar.url")
-    # reputation = serializers.ReadOnlyField(source="profile.reputation")
+
 
     class Meta(UserSerializer.Meta):
         model = User

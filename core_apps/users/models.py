@@ -25,12 +25,13 @@ class User(AbstractUser):
     email = models.EmailField(
         verbose_name=_("Email Address"), unique=True, db_index=True
     )
-    # username = models.CharField(
-    #     verbose_name=_("Username"),
-    #     max_length=60,
-    #     unique=True,
-    #     validators=[UsernameValidator],
-    # )
+    username = models.CharField(
+        verbose_name=_("Username"),
+        max_length=60,
+        validators=[UsernameValidator],
+        null=True,
+        blank=True
+    )
 
     EMAIL_FIELD = "email"
     USERNAME_FIELD = "email"
