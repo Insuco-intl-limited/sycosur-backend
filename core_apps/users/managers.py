@@ -15,21 +15,25 @@ def validate_email_address(email: str):
 
 class UserManager(DjangoUserManager):
     def _create_user(
-        self, email: str, password: str | None, username: str | None = None, **extra_fields
+        self,
+        email: str,
+        password: str | None,
+        username: str | None = None,
+        **extra_fields,
     ):
         if not email:
             raise ValueError(_("An email address must be provided"))
 
         email = self.normalize_email(email)
         validate_email_address(email)
-        
+
         # Si username est fourni, le normaliser
         if username:
             global_user_model = apps.get_model(
                 self.model._meta.app_label, self.model._meta.object_name
             )
             username = global_user_model.normalize_username(username)
-        
+
         user = self.model(email=email, username=username, **extra_fields)
         user.password = make_password(password)
         user.save(using=self._db)
@@ -61,7 +65,7 @@ class UserManager(DjangoUserManager):
 
         if not extra_fields.get("is_superuser"):
             raise ValueError(_("Superuser must have is_superuser=True."))
-        
+
         try:
             existing_user = self.model.objects.get(email=email)
             # Si l'utilisateur existe, mettre à jour les champs et retourner

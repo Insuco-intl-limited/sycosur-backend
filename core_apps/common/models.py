@@ -17,6 +17,3 @@ class TimeStampedModel(models.Model):
     class Meta:
         abstract = True
         ordering = ["-created_at", "-updated_at"]
-
-    # def __str__(self) -> str:
-    #     return f"{self.content_object} viewed by {self.user.get_full_name if self.user else 'Anonymous'} from IP {self.viewer_ip}"

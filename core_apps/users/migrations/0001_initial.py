@@ -90,7 +90,6 @@ class Migration(migrations.Migration):
                     models.CharField(
                         max_length=60,
                         unique=True,
-                        validators=[core_apps.users.models.UsernameValidator],
                         verbose_name="Username",
                     ),
                 ),

@@ -39,11 +39,11 @@ black-fix: ## Formater le code avec black
 
 .PHONY: check-migrations
 check-migrations: ## Vérifier si des migrations sont nécessaires
-	python manage.py makemigrations --check --dry-run
+	docker compose -f ../local.yml run --rm api python manage.py makemigrations --check --dry-run
 
 .PHONY: test
 test: ## Exécuter les tests
-	python manage.py test
+	docker compose -f ../local.yml run --rm api python manage.py test
 
 
 .PHONY: startapp

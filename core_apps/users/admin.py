@@ -83,7 +83,7 @@ class UserAdmin(BaseUserAdmin):
         # "avatar",
         "first_name",
         "last_name",
-        # "username",
+        "username",
         "is_superuser",
         "get_gender",
         "get_odk_role",

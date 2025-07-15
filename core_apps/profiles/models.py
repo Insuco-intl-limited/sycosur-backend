@@ -10,12 +10,18 @@ from django_countries.fields import CountryField
 from phonenumber_field.modelfields import PhoneNumberField
 
 from core_apps.common.models import TimeStampedModel
+from core_apps.common.drive_storage import GoogleDriveStorage
 
 User = get_user_model()
 
 
 def get_user_username(instance: "Profile") -> str:
     return instance.user.username
+
+
+def avatar_upload_path(instance, filename):
+    """Génère le chemin pour l'avatar"""
+    return f"avatars/{instance.user.username}_{filename}"
 
 
 class Profile(TimeStampedModel):
@@ -52,7 +58,13 @@ class Profile(TimeStampedModel):
         )
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
-    # avatar = CloudinaryField(verbose_name=_("Avatar"), blank=True, null=True)
+    avatar = models.ImageField(
+        verbose_name=_("Avatar"), 
+        upload_to=avatar_upload_path,
+        storage=GoogleDriveStorage(),
+        blank=True, 
+        null=True
+    )
     gender = models.CharField(
         verbose_name=_("Gender"),
         max_length=10,
@@ -78,3 +90,9 @@ class Profile(TimeStampedModel):
 
     def __str__(self) -> str:
         return f"{self.user.first_name}'s Profile"
+    
+    def get_avatar_url(self):
+        """Retourne l'URL de l'avatar"""
+        if self.avatar:
+            return self.avatar.url
+        return None

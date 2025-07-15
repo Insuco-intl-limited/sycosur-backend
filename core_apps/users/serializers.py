@@ -24,7 +24,6 @@ class CustomUserSerializer(UserSerializer):
     city = serializers.ReadOnlyField(source="profile.city_of_origin")
     avatar = serializers.ReadOnlyField(source="profile.avatar.url")
 
-
     class Meta(UserSerializer.Meta):
         model = User
         fields = [

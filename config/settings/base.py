@@ -22,7 +22,6 @@ DJANGO_APPS = [
     "colorfield",
     "django.contrib.admin",
     "config.settings.custom_app.CustomAuthConfig",
-    # "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
@@ -37,7 +36,7 @@ THIRD_PARTY_APPS = [
     "drf_yasg",
     "djoser",
     "social_django",
-    #"rosetta",
+    # "rosetta",
     # "taggit",
     "django_filters",
     "djcelery_email",
@@ -48,7 +47,7 @@ LOCAL_APPS = [
     "core_apps.users",
     "core_apps.common",
     "core_apps.profiles",
-    "core_apps.odk"
+    "core_apps.odk",
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -100,13 +99,6 @@ DATABASES = {
     }
 }
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
-
 PASSWORD_HASHERS = [
     "django.contrib.auth.hashers.Argon2PasswordHasher",
     "django.contrib.auth.hashers.PBKDF2PasswordHasher",
@@ -140,14 +132,14 @@ AUTH_PASSWORD_VALIDATORS = [
 LANGUAGE_CODE = "en-us"
 
 LANGUAGES = [
-    ('en', 'English'),
-    ('fr', 'Français'),
-    ('es', 'Español'),
+    ("en", "English"),
+    ("fr", "Français"),
+    ("es", "Español"),
 ]
 
-LOCALE_PATHS = [BASE_DIR / 'locale']
+LOCALE_PATHS = [BASE_DIR / "locale"]
 
-TIME_ZONE = "Africa/Kigali"
+TIME_ZONE = "Africa/Lome"
 
 USE_I18N = True
 
@@ -164,12 +156,12 @@ STATIC_URL = "/static/"
 STATIC_ROOT = str(BASE_DIR / "staticfiles")
 
 STATICFILES_FINDERS = [
-    'django.contrib.staticfiles.finders.FileSystemFinder',
-    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    "django.contrib.staticfiles.finders.FileSystemFinder",
+    "django.contrib.staticfiles.finders.AppDirectoriesFinder",
 ]
 
 # Optionnel : pour éviter les avertissements en production
-STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage"
 
 
 # Default primary key field type
@@ -212,7 +204,6 @@ CELERY_BEAT_SCHEDULE = {
     # }
 }
 
-
 COOKIE_NAME = "access"
 COOKIE_SAMESITE = "Lax"
 COOKIE_PATH = "/"
@@ -229,6 +220,9 @@ REST_FRAMEWORK = {
         "django_filters.rest_framework.DjangoFilterBackend",
     ],
     "PAGE_SIZE": 10,
+    "PAGE_SIZE_QUERY_PARAM": "page_size",  #Permet de personnaliser la taille
+    "MAX_PAGE_SIZE": 100,  #Limite maximum
+
     "DEFAULT_THROTTLE_CLASSES": (
         "rest_framework.throttling.AnonRateThrottle",
         "rest_framework.throttling.UserRateThrottle",
@@ -237,11 +231,15 @@ REST_FRAMEWORK = {
         "anon": "200/day",
         "user": "500/day",
     },
+    # 'DEFAULT_RENDERER_CLASSES': [
+    #     'core_apps.common.renderers.GenericJSONRenderer',
+    #     'rest_framework.renderers.BrowsableAPIRenderer',  # Optional for development
+    # ],
 }
 
 SIMPLE_JWT = {
     "SIGNING_KEY": getenv("SIGNING_KEY"),
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=3600),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
     "ROTATE_REFRESH_TOKENS": True,
     "USER_ID_FIELD": "id",
@@ -290,3 +288,7 @@ AUTHENTICATION_BACKENDS = [
     "social_core.backends.google.GoogleOAuth2",
     "django.contrib.auth.backends.ModelBackend",
 ]
+# Configuration Google Drive
+GOOGLE_SERVICE_ACCOUNT_FILE = path.join(BASE_DIR, 'credentials', 'sycosur2-0-68f9e20fe81e.json')
+GOOGLE_DRIVE_FOLDER_ID = getenv("GOOGLE_DRIVE_FOLDER_ID")
+DEFAULT_FILE_STORAGE = 'core_apps.common.google_drive_storage.GoogleDriveStorage'
