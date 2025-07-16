@@ -220,9 +220,8 @@ REST_FRAMEWORK = {
         "django_filters.rest_framework.DjangoFilterBackend",
     ],
     "PAGE_SIZE": 10,
-    "PAGE_SIZE_QUERY_PARAM": "page_size",  #Permet de personnaliser la taille
-    "MAX_PAGE_SIZE": 100,  #Limite maximum
-
+    "PAGE_SIZE_QUERY_PARAM": "page_size",  # Permet de personnaliser la taille
+    "MAX_PAGE_SIZE": 100,  # Limite maximum
     "DEFAULT_THROTTLE_CLASSES": (
         "rest_framework.throttling.AnonRateThrottle",
         "rest_framework.throttling.UserRateThrottle",
@@ -281,7 +280,7 @@ SOCIAL_AUTH_PIPELINE = [
     "social_core.pipeline.social_auth.associate_user",
     "social_core.pipeline.social_auth.load_extra_data",
     "social_core.pipeline.user.user_details",
-    # "core_apps.profiles.pipeline.save_profile",
+    "core_apps.profiles.pipeline.save_profile",
 ]
 
 AUTHENTICATION_BACKENDS = [
@@ -289,6 +288,8 @@ AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
 ]
 # Configuration Google Drive
-GOOGLE_SERVICE_ACCOUNT_FILE = path.join(BASE_DIR, 'credentials', 'sycosur2-0-68f9e20fe81e.json')
+GOOGLE_SERVICE_ACCOUNT_FILE = path.join(
+    BASE_DIR, "credentials", "sycosur2-0-68f9e20fe81e.json"
+)
 GOOGLE_DRIVE_FOLDER_ID = getenv("GOOGLE_DRIVE_FOLDER_ID")
-DEFAULT_FILE_STORAGE = 'core_apps.common.google_drive_storage.GoogleDriveStorage'
+DEFAULT_FILE_STORAGE = "core_apps.common.drive_storage.GoogleDriveStorage"

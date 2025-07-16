@@ -9,8 +9,8 @@ from autoslug import AutoSlugField
 from django_countries.fields import CountryField
 from phonenumber_field.modelfields import PhoneNumberField
 
-from core_apps.common.models import TimeStampedModel
 from core_apps.common.drive_storage import GoogleDriveStorage
+from core_apps.common.models import TimeStampedModel
 
 User = get_user_model()
 
@@ -59,11 +59,11 @@ class Profile(TimeStampedModel):
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
     avatar = models.ImageField(
-        verbose_name=_("Avatar"), 
+        verbose_name=_("Avatar"),
         upload_to=avatar_upload_path,
         storage=GoogleDriveStorage(),
-        blank=True, 
-        null=True
+        blank=True,
+        null=True,
     )
     gender = models.CharField(
         verbose_name=_("Gender"),
@@ -86,11 +86,9 @@ class Profile(TimeStampedModel):
         verbose_name=_("City"), max_length=180, default="Nairobi"
     )
 
-    slug = AutoSlugField(populate_from=get_user_username, unique=True)
-
     def __str__(self) -> str:
         return f"{self.user.first_name}'s Profile"
-    
+
     def get_avatar_url(self):
         """Retourne l'URL de l'avatar"""
         if self.avatar:

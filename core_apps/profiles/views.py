@@ -7,6 +7,8 @@ from django.http import Http404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, generics, status
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from core_apps.common.renderers import GenericJSONRenderer
 
@@ -16,6 +18,7 @@ from .serializers import (
     ProfileSerializer,
     UpdateProfileSerializer,
 )
+from .tasks import upload_avatar_to_google_drive
 
 # from rest_framework.response import Response
 # from rest_framework.views import APIView
@@ -83,39 +86,21 @@ class ProfileUpdateAPIView(generics.RetrieveUpdateAPIView):
         return profile
 
 
-# class AvatarUploadView(APIView):
-#     def patch(self, request, *args, **kwargs):
-#         return self.upload_avatar(request, *args, **kwargs)
-#
-#     def upload_avatar(self, request, *args, **kwargs):
-#         profile = request.user.profile
-#         serializer = AvatarUploadSerializer(profile, data=request.data)
-#
-#         if serializer.is_valid():
-#             image = serializer.validated_data["avatar"]
-#
-#             image_content = image.read()
-#
-#             upload_avatar_to_cloudinary.delay(str(profile.id), image_content)
-#
-#             return Response(
-#                 {"message": "Avatar upload started."}, status=status.HTTP_202_ACCEPTED
-#             )
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-#
-#
-# class NonTenantProfileListAPIView(generics.ListAPIView):
-#     serializer_class = ProfileSerializer
-#     renderer_classes = [GenericJSONRenderer]
-#     pagination_class = StandardResultsSetPagination
-#     object_label = "non_tenant_profiles"
-#     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
-#     search_fields = ["user__username", "user__first_name", "user__last_name"]
-#     filterset_fields = ["odk_role", "gender", "country_of_origin"]
-#
-#     def get_queryset(self) -> List[Profile]:
-#         return (
-#             Profile.objects.exclude(user__is_staff=True)
-#             .exclude(user__is_superuser=True)
-#             .exclude(odk_role=Profile.ODKRole.DATA_COLLECTOR)
-#         )
+class AvatarUploadView(APIView):
+    def patch(self, request, *args, **kwargs):
+        return self.upload_avatar(request, *args, **kwargs)
+
+    def upload_avatar(self, request, *args, **kwargs):
+        profile = request.user.profile
+        serializer = AvatarUploadSerializer(profile, data=request.data)
+
+        if serializer.is_valid():
+            image = serializer.validated_data["avatar"]
+
+            profile.avatar = image
+            profile.save()
+
+            return Response(
+                {"message": "Avatar uploaded successfully."}, status=status.HTTP_200_OK
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

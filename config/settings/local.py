@@ -24,14 +24,16 @@ CSRF_TRUSTED_ORIGINS = ["http://localhost:8080"]
 ALLOWED_HOSTS = ["localhost", "127.0.0.1", "0.0.0.0"]
 
 # CORS settings for development
-CORS_ALLOW_ALL_ORIGINS = True  # TODO change this to false in production
+CORS_ALLOW_ALL_ORIGINS = True  # TODO change this to False in production
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8080",
     "http://127.0.0.1:8080",
     "http://localhost:5555",
     "http://127.0.0.1:5555",
-    "http://localhost:8025", 
+    "http://localhost:8025",
     "http://127.0.0.1:8025",
+    "https://drive.google.com",
+    "https://googleusercontent.com",
 ]
 
 ADMIN_URL = getenv("DJANGO_ADMIN_URL")

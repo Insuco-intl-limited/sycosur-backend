@@ -1,15 +1,15 @@
-import os
 import io
 import logging
-from typing import Optional
+import os
+
+from django.conf import settings
+from django.core.exceptions import ImproperlyConfigured
+from django.core.files.storage import Storage
+from django.utils.deconstruct import deconstructible
+
+from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseDownload, MediaIoBaseUpload
-from google.oauth2.service_account import Credentials
-from django.conf import settings
-from django.core.files.storage import Storage
-from django.core.files.base import ContentFile
-from django.utils.deconstruct import deconstructible
-from django.core.exceptions import ImproperlyConfigured
 
 logger = logging.getLogger(__name__)
 
@@ -18,119 +18,176 @@ logger = logging.getLogger(__name__)
 class GoogleDriveStorage(Storage):
     def __init__(self):
         self.service = self._get_service()
-        self.folder_id = getattr(settings, 'GOOGLE_DRIVE_FOLDER_ID', None)
+        self.folder_id = getattr(settings, "GOOGLE_DRIVE_FOLDER_ID", None)
         if not self.folder_id:
             raise ImproperlyConfigured("GOOGLE_DRIVE_FOLDER_ID must be set in settings")
 
     def _get_service(self):
-        """Initialise le service Google Drive"""
+        """Initialize Google Drive service"""
         try:
-            service_account_file = getattr(settings, 'GOOGLE_SERVICE_ACCOUNT_FILE', None)
+            service_account_file = getattr(
+                settings, "GOOGLE_SERVICE_ACCOUNT_FILE", None
+            )
             if not service_account_file or not os.path.exists(service_account_file):
-                raise ImproperlyConfigured("GOOGLE_SERVICE_ACCOUNT_FILE must be set and file must exist")
+                raise ImproperlyConfigured(
+                    "GOOGLE_SERVICE_ACCOUNT_FILE must be set and file must exist"
+                )
 
             creds = Credentials.from_service_account_file(
-                service_account_file,
-                scopes=['https://www.googleapis.com/auth/drive.file']
+                service_account_file, scopes=["https://www.googleapis.com/auth/drive"]
             )
-            return build('drive', 'v3', credentials=creds)
+            return build("drive", "v3", credentials=creds)
         except Exception as e:
-            logger.error(f"Erreur lors de l'initialisation du service Google Drive: {e}")
+            logger.error(f"Error initializing Google Drive service: {e}")
             raise
 
     def _save(self, name, content):
-        """Sauvegarde le fichier sur Google Drive"""
+        """Save file to Google Drive"""
         try:
-            # Métadonnées du fichier
-            file_metadata = {
-                'name': name,
-                'parents': [self.folder_id]
-            }
+            # File metadata
+            file_metadata = {"name": name, "parents": [self.folder_id]}
 
-            # Contenu du fichier
-            content.seek(0)  # Retour au début du fichier
+            # File content
+            content.seek(0)  # Return to start of file
             media = MediaIoBaseUpload(
                 io.BytesIO(content.read()),
                 mimetype=self._get_mimetype(name),
-                resumable=True
+                resumable=True,
             )
 
-            # Upload du fichier
-            file = self.service.files().create(
-                body=file_metadata,
-                media_body=media,
-                fields='id'
-            ).execute()
+            # Upload file with shared drive support
+            file = (
+                self.service.files()
+                .create(
+                    body=file_metadata,
+                    media_body=media,
+                    fields="id",
+                    supportsAllDrives=True,  # Enable shared drive support
+                )
+                .execute()
+            )
 
-            # Rendre le fichier public
-            self._make_public(file.get('id'))
+            # Make file public
+            self._make_public(file.get("id"))
 
-            logger.info(f"Fichier {name} uploadé avec succès, ID: {file.get('id')}")
-            return file.get('id')
+            logger.info(f"File {name} uploaded successfully, ID: {file.get('id')}")
+            return file.get("id")
 
         except Exception as e:
-            logger.error(f"Erreur lors de la sauvegarde de {name}: {e}")
+            logger.error(f"Error saving {name}: {e}")
             raise
 
     def _make_public(self, file_id):
-        """Rend le fichier public"""
+        """Make file public"""
         try:
-            permission = {
-                'type': 'anyone',
-                'role': 'reader'
-            }
+            permission = {"type": "anyone", "role": "reader"}
             self.service.permissions().create(
                 fileId=file_id,
-                body=permission
+                body=permission,
+                supportsAllDrives=True,  # Enable shared drive support
             ).execute()
         except Exception as e:
-            logger.warning(f"Impossible de rendre le fichier public: {e}")
+            logger.warning(f"Unable to make file public: {e}")
 
     def _get_mimetype(self, name):
-        """Détermine le type MIME basé sur l'extension"""
-        extension = name.lower().split('.')[-1]
+        """Determine MIME type based on extension"""
+        extension = name.lower().split(".")[-1]
         mimetypes = {
-            'jpg': 'image/jpeg',
-            'jpeg': 'image/jpeg',
-            'png': 'image/png',
-            'gif': 'image/gif',
-            'webp': 'image/webp'
+            "jpg": "image/jpeg",
+            "jpeg": "image/jpeg",
+            "png": "image/png",
+            "gif": "image/gif",
+            "webp": "image/webp",
         }
-        return mimetypes.get(extension, 'application/octet-stream')
+        # get the file type otherwise return application/octet-stream (generic type of binary files)
+        return mimetypes.get(extension, "application/octet-stream")
 
     def delete(self, name):
-        """Supprime le fichier de Google Drive"""
+        """Delete file from Google Drive"""
         try:
-            self.service.files().delete(fileId=name).execute()
-            logger.info(f"Fichier {name} supprimé avec succès")
+            self.service.files().delete(
+                fileId=name, supportsAllDrives=True  # Enable shared drive support
+            ).execute()
+            logger.info(f"File {name} deleted successfully")
         except Exception as e:
-            logger.error(f"Erreur lors de la suppression de {name}: {e}")
+            logger.error(f"Error deleting {name}: {e}")
 
     def exists(self, name):
-        """Vérifie si le fichier existe"""
+        """Check if file exists"""
         try:
-            self.service.files().get(fileId=name).execute()
+            self.service.files().get(
+                fileId=name, supportsAllDrives=True  # Enable shared drive support
+            ).execute()
             return True
         except:
             return False
 
     def url(self, name):
-        """Retourne l'URL publique du fichier"""
+        """Return public URL for file"""
         if not name:
             return None
-        return f"https://drive.google.com/uc?id={name}&export=download"
+        return f"https://drive.google.com/thumbnail?id={name}&sz=w400-h300"
 
     def size(self, name):
-        """Retourne la taille du fichier"""
+        """Return file size"""
         try:
-            file = self.service.files().get(fileId=name, fields='size').execute()
-            return int(file.get('size', 0))
+            file = (
+                self.service.files()
+                .get(
+                    fileId=name,
+                    fields="size",
+                    supportsAllDrives=True,  # Enable shared drive support
+                )
+                .execute()
+            )
+            return int(file.get("size", 0))
         except:
             return 0
 
     def get_valid_name(self, name):
-        """Nettoie le nom du fichier"""
+        """Clean filename"""
         import re
-        # Remplace les caractères non-alphanumériques par des underscores
-        name = re.sub(r'[^\w\-_\.]', '_', name)
+
+        # Replace non-alphanumeric characters with underscores
+        name = re.sub(r"[^\w\-_\.]", "_", name)
         return name
+
+    # method to resize the image
+    def resize_file(self, name, widht: int, height: int):
+        """Resize image file stored in Google Drive"""
+        try:
+            # Download file
+            request = self.service.files().get_media(
+                fileId=name, supportsAllDrives=True
+            )
+            file = io.BytesIO()
+            downloader = MediaIoBaseDownload(file, request)
+            done = False
+            while done is False:
+                status, done = downloader.next_chunk()
+
+            # Resize image
+            from PIL import Image
+
+            file.seek(0)
+            image = Image.open(file)
+            resized_image = image.resize((widht, height), Image.Resampling.LANCZOS)
+
+            # Save resized image to buffer
+            output = io.BytesIO()
+            resized_image.save(output, format=image.format)
+            output.seek(0)
+
+            # Update file in Drive
+            media = MediaIoBaseUpload(
+                output, mimetype=self._get_mimetype(name), resumable=True
+            )
+
+            self.service.files().update(
+                fileId=name, media_body=media, supportsAllDrives=True
+            ).execute()
+
+            return True
+        except Exception as e:
+            logger.error(f"Error resizing file {name}: {e}")
+            return False

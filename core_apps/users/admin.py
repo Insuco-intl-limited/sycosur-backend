@@ -39,16 +39,22 @@ class ProfileInline(admin.StackedInline):
     can_delete = False
     verbose_name_plural = "User Profile"
     fk_name = "user"
-    # readonly_fields = ['avatar_preview', 'slug', ]
+    readonly_fields = [
+        "avatar_preview",
+    ]
 
-    # def avatar_preview(self, instance):
-    #     if instance.avatar:
-    #         return format_html('<img src="{}" width="300" height="300" style="object-fit: cover;" />', instance.avatar.url)
-    #     return "No avatar"
-    # avatar_preview.short_description = "Preview"
+    def avatar_preview(self, instance):
+        if instance.avatar:
+            return format_html(
+                '<img src="{}" width="300" height="300" style="object-fit: cover;" />',
+                instance.avatar.url,
+            )
+        return "No avatar"
+
+    avatar_preview.short_description = "Preview"
 
     fieldsets = (
-        # ('', {'fields': ('avatar_preview', 'avatar')}),
+        ("", {"fields": ("avatar_preview", "avatar")}),
         (
             "",
             {
@@ -80,7 +86,7 @@ class UserAdmin(BaseUserAdmin):
         "pkid",
         "id",
         "email",
-        # "avatar",
+        "avatar",
         "first_name",
         "last_name",
         "username",
@@ -93,15 +99,17 @@ class UserAdmin(BaseUserAdmin):
     ordering = ["pkid"]
     list_select_related = ("profile",)
 
-    #
-    # def avatar(self, instance):
-    #     if instance.profile.avatar:
-    #         width, height = 80, 100  # Set desired width and height
-    #         return format_html(
-    #             '<img src="{}" width="{}" height="{}" style="border-radius: 50%;" />',  # No leading slash
-    #             instance.profile.avatar.url, width, height
-    #         )
-    #     return None
+    def avatar(self, instance):
+        if instance.profile.avatar:
+            width, height = 60, 60  # Set desired width and height
+            return format_html(
+                '<img src="{}" width="{}" height="{}" style="border-radius: 50%; object-fit: cover;" />',
+                instance.profile.avatar.url,
+                width,
+                height,
+            )
+        return "No avatar"
+
     def get_gender(self, instance):
         return instance.profile.gender
 
@@ -114,7 +122,7 @@ class UserAdmin(BaseUserAdmin):
 
     fieldsets = (
         (_("Login Credentials"), {"fields": ("email", "password")}),
-        (_("Personal info"), {"fields": ("first_name", "last_name")}),
+        (_("Personal info"), {"fields": ("first_name", "last_name", "username")}),
         (
             _("Permissions and Groups"),
             {
