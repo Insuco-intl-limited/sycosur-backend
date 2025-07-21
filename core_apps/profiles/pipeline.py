@@ -4,8 +4,9 @@ import requests
 
 from core_apps.common.drive_storage import GoogleDriveStorage
 from core_apps.profiles.models import Profile
+from django.core.files.storage import FileSystemStorage
 
-
+# TODO: fonction à revoir
 def save_profile(backend, user, response, *args, **kwargs):
     if backend.name == "google-oauth2":
         avatar_url = response.get("picture", None)
@@ -15,7 +16,9 @@ def save_profile(backend, user, response, *args, **kwargs):
                 img_temp = NamedTemporaryFile(delete=True)
                 img_temp.write(response.content)
                 img_temp.flush()
-
-                storage = GoogleDriveStorage()
+                # storage = GoogleDriveStorage()
+                storage = FileSystemStorage()
                 profile, created = Profile.objects.get_or_create(user=user)
-                profile.avatar.save(f"{user.email}_avatar.jpg", img_temp, save=True)
+                profile.avatar.save(f"{user.email}_photo", img_temp, save=True)
+
+                profile.save()

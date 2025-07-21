@@ -1,27 +1,16 @@
-# from cloudinary.models import CloudinaryField
 from django.contrib.auth import get_user_model
 from django.db import models
-
-# from django.db.models import Avg
 from django.utils.translation import gettext_lazy as _
-
-from autoslug import AutoSlugField
 from django_countries.fields import CountryField
 from phonenumber_field.modelfields import PhoneNumberField
-
-from core_apps.common.drive_storage import GoogleDriveStorage
+from django.core.files.storage import FileSystemStorage
 from core_apps.common.models import TimeStampedModel
 
 User = get_user_model()
 
-
-def get_user_username(instance: "Profile") -> str:
-    return instance.user.username
-
-
-def avatar_upload_path(instance, filename):
+def avatar_upload_path(instance, filename="photo"):
     """Génère le chemin pour l'avatar"""
-    return f"avatars/{instance.user.username}_{filename}"
+    return "avatars/{0}_{1}".format(instance.user.email, "photo")
 
 
 class Profile(TimeStampedModel):
@@ -61,7 +50,7 @@ class Profile(TimeStampedModel):
     avatar = models.ImageField(
         verbose_name=_("Avatar"),
         upload_to=avatar_upload_path,
-        storage=GoogleDriveStorage(),
+        storage= FileSystemStorage(),
         blank=True,
         null=True,
     )

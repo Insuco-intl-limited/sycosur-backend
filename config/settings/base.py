@@ -130,14 +130,14 @@ AUTH_PASSWORD_VALIDATORS = [
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
 LANGUAGE_CODE = "en-us"
-
-LANGUAGES = [
-    ("en", "English"),
-    ("fr", "Français"),
-    ("es", "Español"),
-]
-
-LOCALE_PATHS = [BASE_DIR / "locale"]
+#
+# LANGUAGES = [
+#     ("en", "English"),
+#     ("fr", "Français"),
+#     ("es", "Español"),
+# ]
+#
+# LOCALE_PATHS = [BASE_DIR / "locale"]
 
 TIME_ZONE = "Africa/Lome"
 
@@ -292,4 +292,7 @@ GOOGLE_SERVICE_ACCOUNT_FILE = path.join(
     BASE_DIR, "credentials", "sycosur2-0-68f9e20fe81e.json"
 )
 GOOGLE_DRIVE_FOLDER_ID = getenv("GOOGLE_DRIVE_FOLDER_ID")
-DEFAULT_FILE_STORAGE = "core_apps.common.drive_storage.GoogleDriveStorage"
+#DEFAULT_FILE_STORAGE = "core_apps.common.drive_storage.GoogleDriveStorage"
+DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+MEDIA_ROOT = BASE_DIR / 'media'  # Directory for uploaded files
+MEDIA_URL = '/media/'
