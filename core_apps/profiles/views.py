@@ -1,6 +1,7 @@
 from typing import List
 
 from django.contrib.auth import get_user_model
+from django.core.files.storage import FileSystemStorage
 from django.db.models import QuerySet
 from django.http import Http404
 
@@ -19,7 +20,7 @@ from .serializers import (
     ProfileSerializer,
     UpdateProfileSerializer,
 )
-from .tasks import upload_avatar_to_google_drive
+from .tasks import upload_avatar_to_media
 from ..common.drive_storage import GoogleDriveStorage
 
 # from rest_framework.response import Response
@@ -98,53 +99,46 @@ class AvatarUploadView(APIView):
 
         if serializer.is_valid():
             image = serializer.validated_data["avatar"]
-
-            profile.avatar = image
-            profile.save()
-
+            image_content = image.read()
+            upload_avatar_to_media.delay(str(profile.id), image_content, image.name)
             return Response(
-                {"message": "Avatar uploaded successfully."}, status=status.HTTP_200_OK
+               status=status.HTTP_200_OK
             )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
-class DeleteAvatarView(APIView):
-
-    @action(detail=True, methods=['delete'])
-    def delete_avatar(self, request):
-        try:
-            profile = request.user.profile
-            if not profile:
-                return Response(
-                    {"message": "Profile not found"},
-                    status=status.HTTP_404_NOT_FOUND
-                )
-
-            if not profile.avatar:
-                return Response(
-                    {"message": "No avatar to delete"},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-
-            storage = GoogleDriveStorage()
-            image_name = storage.get_image_name(profile.avatar)
-
-            try:
-                storage.delete(image_name)
-                profile.avatar = None
-                profile.save()
-                return Response(
-                    {"message": "Avatar deleted successfully"},
-                    status=status.HTTP_200_OK
-                )
-            except Exception as e:
-                return Response(
-                    {"message": f"Failed to delete avatar: {str(e)}"},
-                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
-                )
-
-        except Exception as e:
-            return Response(
-                {"message": f"An error occurred: {str(e)}"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+# TODO: revoir cette classe
+# class DeleteAvatarView(APIView):
+#
+#     @action(detail=True, methods=['delete'])
+#     def delete_avatar(self, request):
+#         try:
+#             profile = request.user.profile
+#             if not profile:
+#                 return Response(
+#                     {"message": "Profile not found"},
+#                     status=status.HTTP_404_NOT_FOUND
+#                 )
+#             if not profile.avatar:
+#                 return Response(
+#                     {"message": "No avatar to delete"},
+#                     status=status.HTTP_400_BAD_REQUEST
+#                 )
+#             storage = FileSystemStorage()
+#             try:
+#                 storage.delete(profile.avatar.name)
+#                 profile.avatar = None
+#                 profile.save()
+#                 return Response(
+#                     status=status.HTTP_200_OK
+#                 )
+#             except Exception as e:
+#                 return Response(
+#                     {"message": f"{str(e)}"},
+#                     status=status.HTTP_500_INTERNAL_SERVER_ERROR
+#                 )
+#
+#         except Exception as e:
+#             return Response(
+#                 {"message": f"{str(e)}"},
+#                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
+#             )

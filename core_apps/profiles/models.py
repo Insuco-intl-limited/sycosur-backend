@@ -33,26 +33,26 @@ class Profile(TimeStampedModel):
             "data_collector",
             _("Data Collector"),
         )
-        SUPERVISOR = (
-            "supervisor",
-            _("Supervisor"),
+        APPUSER = (
+            "appuser",
+            _("App User"),
         )
         MANAGER = (
             "manager",
-            _("Manager"),
+            _("Project Manager"),
         )
         ADMINISTRATOR = (
             "administrator",
             _("Administrator"),
         )
-
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
     avatar = models.ImageField(
         verbose_name=_("Avatar"),
         upload_to=avatar_upload_path,
-        storage= FileSystemStorage(),
+        storage=FileSystemStorage(),
         blank=True,
         null=True,
+        default="avatars/default-avatar.png"
     )
     gender = models.CharField(
         verbose_name=_("Gender"),
