@@ -1,7 +1,7 @@
 from datetime import timedelta
 from os import getenv, path
 from pathlib import Path
-
+from config.env import PROD_ENV_FILE
 from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -9,10 +9,10 @@ BASE_DIR = Path(__file__).resolve(strict=True).parent.parent.parent
 
 APPS_DIR = BASE_DIR / "core_apps"
 
-prod_env_file = path.join(BASE_DIR, ".envs", ".env.local")
+# prod_env_file = path.join(BASE_DIR, ".envs", ".env.local")
 
-if path.isfile(prod_env_file):
-    load_dotenv(prod_env_file)
+if path.isfile(PROD_ENV_FILE):
+    load_dotenv(PROD_ENV_FILE)
 
 
 # Application definition
@@ -96,6 +96,7 @@ DATABASES = {
         "PASSWORD": getenv("POSTGRES_PASSWORD"),
         "HOST": getenv("POSTGRES_HOST"),
         "PORT": getenv("POSTGRES_PORT"),
+        "ATOMIC_REQUESTS": True,
     }
 }
 
@@ -287,7 +288,7 @@ AUTHENTICATION_BACKENDS = [
     "social_core.backends.google.GoogleOAuth2",
     "django.contrib.auth.backends.ModelBackend",
 ]
-# Configuration Google Drive
+# Google Drive settings
 GOOGLE_SERVICE_ACCOUNT_FILE = path.join(
     BASE_DIR, "credentials", "sycosur2-0-68f9e20fe81e.json"
 )
@@ -296,3 +297,12 @@ GOOGLE_DRIVE_FOLDER_ID = getenv("GOOGLE_DRIVE_FOLDER_ID")
 DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
 MEDIA_ROOT = BASE_DIR / 'media'  # Directory for uploaded files
 MEDIA_URL = '/media/'
+USE_THOUSAND_SEPARATOR = True
+THOUSAND_SEPARATOR = "."
+
+# ODK account settings
+ODK_ADMIN_EMAIL = "admin@insuco.com"
+ODK_ADMIN_PASSWORD = "@@AYIEKSKY0537"
+
+ODK_ADMIN_EMAIL2 = getenv("ODK_ADMIN_EMAIL2")
+ODK_ADMIN_PASSWORD2 = getenv("ODK_ADMIN_PASSWORD2")
