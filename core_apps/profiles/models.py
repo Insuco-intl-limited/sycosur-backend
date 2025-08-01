@@ -1,12 +1,15 @@
 from django.contrib.auth import get_user_model
+from django.core.files.storage import FileSystemStorage
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+
 from django_countries.fields import CountryField
 from phonenumber_field.modelfields import PhoneNumberField
-from django.core.files.storage import FileSystemStorage
+
 from core_apps.common.models import TimeStampedModel
 
 User = get_user_model()
+
 
 def avatar_upload_path(instance, filename="photo"):
     """Génère le chemin pour l'avatar"""
@@ -45,6 +48,7 @@ class Profile(TimeStampedModel):
             "administrator",
             _("Administrator"),
         )
+
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
     avatar = models.ImageField(
         verbose_name=_("Avatar"),
@@ -52,7 +56,7 @@ class Profile(TimeStampedModel):
         storage=FileSystemStorage(),
         blank=True,
         null=True,
-        default="avatars/default-avatar.png"
+        default="avatars/default-avatar.png",
     )
     gender = models.CharField(
         verbose_name=_("Gender"),

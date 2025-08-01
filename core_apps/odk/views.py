@@ -1,33 +1,32 @@
-from django.shortcuts import render
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status, generics
-from rest_framework.permissions import IsAuthenticated
+import logging
+
+from django.shortcuts import get_object_or_404, render
+from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
-from django.shortcuts import get_object_or_404
-from django.utils import timezone
 
-from .models import ODKProjects, ODKProjectPermissions
-from core_apps.odk.services.poolServices import ODKAccountPool
-from core_apps.odk.services.cnxServices import ODKCentralService
-from .cache import ODKCacheManager
-from .permissions import (
-    HasODKAccess,
-    HasODKProjectPermission,
-    CanManageODKProjects,
-    IsODKAdministrator,
-    CanSubmitToODKProject
-)
-from .serializers import (
-    ODKProjectSerializer,
-    # ODKFormSerializer,
-    ODKProjectPermissionSerializer,
-    # ODKSubmissionSerializer
-)
+from rest_framework import generics, status
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from core_apps.common.renderers import GenericJSONRenderer
-import logging
+from core_apps.odk.services.cnxServices import ODKCentralService
+from core_apps.odk.services.poolServices import ODKAccountPool
+
+from .cache import ODKCacheManager
+from .models import ODKProjectPermissions, ODKProjects
+from .permissions import (
+    CanManageODKProjects,
+    CanSubmitToODKProject,
+    HasODKAccess,
+    HasODKProjectPermission,
+    IsODKAdministrator,
+)
+from .serializers import (  # ODKFormSerializer,; ODKSubmissionSerializer
+    ODKProjectPermissionSerializer,
+    ODKProjectSerializer,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -44,12 +43,15 @@ class ODKProjectListView(APIView):
 
         if cached_projects:
             # Retourne les données en cache
-            return Response({
-                'count': len(cached_projects),
-                'results': cached_projects,
-                'cached': True,
-                'user_role': request.user.profile.get_odk_role_display()
-            }, status=status.HTTP_200_OK)
+            return Response(
+                {
+                    "count": len(cached_projects),
+                    "results": cached_projects,
+                    "cached": True,
+                    "user_role": request.user.profile.get_odk_role_display(),
+                },
+                status=status.HTTP_200_OK,
+            )
 
         # Sinon, récupère depuis ODK avec le pool de comptes
         try:
@@ -59,19 +61,22 @@ class ODKProjectListView(APIView):
                 # Met en cache le résultat
                 ODKCacheManager.cache_user_projects(request.user.id, projects)
 
-                return Response({
-                    'count': len(projects),
-                    'results': projects,
-                    'cached': False,
-                    'user_role': request.user.profile.get_odk_role_display()
-                }, status=status.HTTP_200_OK)
+                return Response(
+                    {
+                        "count": len(projects),
+                        "results": projects,
+                        "cached": False,
+                        "user_role": request.user.profile.get_odk_role_display(),
+                    },
+                    status=status.HTTP_200_OK,
+                )
 
         except Exception as e:
             logger.error(f"Erreur lors de la récupération des projets ODK: {e}")
-            return Response({
-                'error': 'Impossible de récupérer les projets',
-                'detail': str(e)
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(
+                {"error": "Impossible de récupérer les projets", "detail": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
 
 # class ODKProjectDetailView(APIView):

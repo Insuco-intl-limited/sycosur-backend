@@ -1,10 +1,12 @@
 import io
 import logging
 import os
+
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.core.files.storage import Storage
 from django.utils.deconstruct import deconstructible
+
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseDownload, MediaIoBaseUpload
@@ -41,7 +43,9 @@ class GoogleDriveStorage(Storage):
     def _get_service(self):
         """Initialize Google Drive service"""
         try:
-            service_account_file = getattr(settings, "GOOGLE_SERVICE_ACCOUNT_FILE", None)
+            service_account_file = getattr(
+                settings, "GOOGLE_SERVICE_ACCOUNT_FILE", None
+            )
             if not service_account_file or not os.path.exists(service_account_file):
                 raise ImproperlyConfigured(
                     "GOOGLE_SERVICE_ACCOUNT_FILE must be set and file must exist"
@@ -78,38 +82,51 @@ class GoogleDriveStorage(Storage):
         if not folder_path:
             return current_folder_id
 
-        folder_names = folder_path.strip('/').split('/')
+        folder_names = folder_path.strip("/").split("/")
         for folder_name in folder_names:
             if not folder_name:  # Skip empty folder names
                 continue
-            current_folder_id = self._get_or_create_folder(folder_name, current_folder_id)
+            current_folder_id = self._get_or_create_folder(
+                folder_name, current_folder_id
+            )
 
         return current_folder_id
 
     def _get_or_create_folder(self, folder_name, parent_id):
         """Get existing folder or create new one"""
         # Search for existing folder
-        query = (f"name='{folder_name}' and mimeType='{self.FOLDER_MIME_TYPE}' "
-                 f"and '{parent_id}' in parents and trashed=false")
-        results = self.service.files().list(
-            q=query, spaces='drive', supportsAllDrives=True, fields='files(id, name)'
-        ).execute()
+        query = (
+            f"name='{folder_name}' and mimeType='{self.FOLDER_MIME_TYPE}' "
+            f"and '{parent_id}' in parents and trashed=false"
+        )
+        results = (
+            self.service.files()
+            .list(
+                q=query,
+                spaces="drive",
+                supportsAllDrives=True,
+                fields="files(id, name)",
+            )
+            .execute()
+        )
 
-        folders = results.get('files', [])
+        folders = results.get("files", [])
         if folders:
-            return folders[0]['id']
+            return folders[0]["id"]
 
         # Create new folder
         folder_metadata = {
-            'name': folder_name,
-            'mimeType': self.FOLDER_MIME_TYPE,
-            'parents': [parent_id],
-            'driveId': self.folder_id
+            "name": folder_name,
+            "mimeType": self.FOLDER_MIME_TYPE,
+            "parents": [parent_id],
+            "driveId": self.folder_id,
         }
-        folder = self.service.files().create(
-            body=folder_metadata, supportsAllDrives=True, fields='id'
-        ).execute()
-        return folder.get('id')
+        folder = (
+            self.service.files()
+            .create(body=folder_metadata, supportsAllDrives=True, fields="id")
+            .execute()
+        )
+        return folder.get("id")
 
     def _upload_file(self, file_name, content, parent_folder_id):
         """Upload file content to Google Drive"""
@@ -122,12 +139,16 @@ class GoogleDriveStorage(Storage):
             resumable=True,
         )
 
-        file = self.service.files().create(
-            body=file_metadata,
-            media_body=media,
-            fields="id",
-            supportsAllDrives=True,
-        ).execute()
+        file = (
+            self.service.files()
+            .create(
+                body=file_metadata,
+                media_body=media,
+                fields="id",
+                supportsAllDrives=True,
+            )
+            .execute()
+        )
 
         return file.get("id")
 
@@ -163,9 +184,7 @@ class GoogleDriveStorage(Storage):
         """Check if file exists"""
         try:
             file_id = self.get_image_name(name)
-            self.service.files().get(
-                fileId=file_id, supportsAllDrives=True
-            ).execute()
+            self.service.files().get(fileId=file_id, supportsAllDrives=True).execute()
             return True
         except:
             return False
@@ -181,11 +200,15 @@ class GoogleDriveStorage(Storage):
         """Return file size"""
         try:
             file_id = self.get_image_name(name)
-            file = self.service.files().get(
-                fileId=file_id,
-                fields="size",
-                supportsAllDrives=True,
-            ).execute()
+            file = (
+                self.service.files()
+                .get(
+                    fileId=file_id,
+                    fields="size",
+                    supportsAllDrives=True,
+                )
+                .execute()
+            )
             return int(file.get("size", 0))
         except:
             return 0

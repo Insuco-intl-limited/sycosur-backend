@@ -14,6 +14,7 @@ from rest_framework.views import APIView
 
 from core_apps.common.renderers import GenericJSONRenderer
 
+from ..common.drive_storage import GoogleDriveStorage
 from .models import Profile
 from .serializers import (
     AvatarUploadSerializer,
@@ -21,7 +22,6 @@ from .serializers import (
     UpdateProfileSerializer,
 )
 from .tasks import upload_avatar_to_media
-from ..common.drive_storage import GoogleDriveStorage
 
 # from rest_framework.response import Response
 # from rest_framework.views import APIView
@@ -101,10 +101,9 @@ class AvatarUploadView(APIView):
             image = serializer.validated_data["avatar"]
             image_content = image.read()
             upload_avatar_to_media.delay(str(profile.id), image_content, image.name)
-            return Response(
-               status=status.HTTP_200_OK
-            )
+            return Response(status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 # TODO: revoir cette classe
 # class DeleteAvatarView(APIView):

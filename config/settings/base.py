@@ -1,8 +1,10 @@
 from datetime import timedelta
 from os import getenv, path
 from pathlib import Path
-from config.env import PROD_ENV_FILE
+
 from dotenv import load_dotenv
+
+from config.env import PROD_ENV_FILE
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent.parent
@@ -293,10 +295,10 @@ GOOGLE_SERVICE_ACCOUNT_FILE = path.join(
     BASE_DIR, "credentials", "sycosur2-0-68f9e20fe81e.json"
 )
 GOOGLE_DRIVE_FOLDER_ID = getenv("GOOGLE_DRIVE_FOLDER_ID")
-#DEFAULT_FILE_STORAGE = "core_apps.common.drive_storage.GoogleDriveStorage"
-DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
-MEDIA_ROOT = BASE_DIR / 'media'  # Directory for uploaded files
-MEDIA_URL = '/media/'
+# DEFAULT_FILE_STORAGE = "core_apps.common.drive_storage.GoogleDriveStorage"
+DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
+MEDIA_ROOT = BASE_DIR / "media"  # Directory for uploaded files
+MEDIA_URL = "/media/"
 USE_THOUSAND_SEPARATOR = True
 THOUSAND_SEPARATOR = "."
 

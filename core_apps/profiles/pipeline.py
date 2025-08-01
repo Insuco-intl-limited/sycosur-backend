@@ -1,7 +1,10 @@
-from django.core.files.temp import NamedTemporaryFile
-import requests
-from core_apps.profiles.models import Profile
 from django.core.files.storage import FileSystemStorage
+from django.core.files.temp import NamedTemporaryFile
+
+import requests
+
+from core_apps.profiles.models import Profile
+
 
 # TODO: fonction à revoir
 def save_profile(backend, user, response, *args, **kwargs):

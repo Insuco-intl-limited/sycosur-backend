@@ -1,13 +1,7 @@
 from django.urls import path
 
-from .views import (
+from .views import (  # ODKProjectDetailView,; ODKFormDetailView,; ODKSyncProjectView,; ODKProjectPermissionListView,; ODKProjectPermissionDetailView,; ODKSystemStatusView
     ODKProjectListView,
-    # ODKProjectDetailView,
-    # ODKFormDetailView,
-    # ODKSyncProjectView,
-    # ODKProjectPermissionListView,
-    # ODKProjectPermissionDetailView,
-    # ODKSystemStatusView
 )
 
 app_name = "odk"
@@ -28,6 +22,4 @@ urlpatterns = [
     #
     # # Système
     # path("status/", ODKSystemStatusView.as_view(), name="system-status"),
-
 ]
-
