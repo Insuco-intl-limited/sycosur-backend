@@ -6,3 +6,6 @@ class OdkConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
     name = "core_apps.odk"
     verbose_name = _("Open Data kit")
+
+    def ready(self):
+        import core_apps.odk.signals
