@@ -1,46 +1,25 @@
 import logging
 
-from django.shortcuts import get_object_or_404, render
-from django.utils import timezone
-from django.utils.decorators import method_decorator
-from django.views.decorators.cache import cache_page
-
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from core_apps.common.renderers import GenericJSONRenderer
-from core_apps.odk.services.cnxServices import ODKCentralService
-from core_apps.odk.services.poolServices import ODKAccountPool
+from core_apps.odk.services.allServices import ODKCentralService
 
 from .cache import ODKCacheManager
-from .models import ODKProjectPermissions, ODKProjects
-from .permissions import (
-    CanManageODKProjects,
-    CanSubmitToODKProject,
-    HasODKAccess,
-    HasODKProjectPermission,
-    IsODKAdministrator,
-)
-from .serializers import (  # ODKFormSerializer,; ODKSubmissionSerializer
-    ODKProjectPermissionSerializer,
-    ODKProjectSerializer,
-)
 
 logger = logging.getLogger(__name__)
 
 
 class ODKProjectListView(APIView):
-    permission_classes = [IsAuthenticated, HasODKAccess]
+    permission_classes = [IsAuthenticated]
     renderer_classes = [GenericJSONRenderer]
     object_label = "odk_projects"
 
     def get(self, request):
-        """Liste les projets ODK accessibles à l'utilisateur"""
-        # Vérifie d'abord le cache
         cached_projects = ODKCacheManager.get_cached_user_projects(request.user.id)
-
         if cached_projects:
             # Retourne les données en cache
             return Response(
