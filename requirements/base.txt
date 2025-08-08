@@ -16,6 +16,7 @@ django-filter==24.1
 django-celery-email==3.0.0
 django-celery-beat==2.6.0
 redis==5.0.3
+django-redis==6.0.0
 celery==5.3.6
 flower==2.0.1
 django-rosetta

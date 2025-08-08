@@ -75,7 +75,7 @@ class HasODKProjectPermission(BasePermission):
 
             # Pour les autres rôles, on vérifie les permissions spécifiques
             try:
-                project = ODKProject.objects.get(odk_id=project_id)
+                project = ODKProjects.objects.get(odk_id=project_id)
 
                 # Superviseur a accès par défaut
                 if profile.odk_role == profile.ODKRole.SUPERVISOR:
@@ -83,7 +83,7 @@ class HasODKProjectPermission(BasePermission):
 
                 # Vérifie les permissions explicites
                 try:
-                    permission = ODKProjectPermission.objects.get(
+                    permission = ODKProjectPermissions.objects.get(
                         user=request.user, project=project
                     )
 
@@ -98,11 +98,11 @@ class HasODKProjectPermission(BasePermission):
                         "admin",
                     ]
 
-                except ODKProjectPermission.DoesNotExist:
+                except ODKProjectPermissions.DoesNotExist:
                     # Pas de permission explicite pour ce projet
                     return False
 
-            except ODKProject.DoesNotExist:
+            except ODKProjects.DoesNotExist:
                 # Si le projet n'existe pas encore dans Django, seuls les superviseurs et +
                 return profile.odk_role == profile.ODKRole.SUPERVISOR
 

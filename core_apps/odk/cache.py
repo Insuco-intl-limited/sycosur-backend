@@ -27,7 +27,7 @@ class ODKCacheManager:
         return "_".join(key_parts)
 
     @staticmethod
-    def cache_user_projects(user_id: int, projects: list, timeout: int = None) -> None:
+    def cache_user_projects(user_id: int, projects, timeout: int = None) -> None:
         """Met en cache les projets d'un utilisateur"""
         cache_key = ODKCacheManager.get_cache_key(user_id, "projects")
         cache_data = {"projects": projects, "cached_at": timezone.now().isoformat()}

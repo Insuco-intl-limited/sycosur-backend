@@ -57,7 +57,7 @@ class ODKAccountPool:
             self.account_locks[account["id"]] = threading.Lock()
 
         self._initialized = True
-        logger.info(f"ODK Account Pool initialisé avec {len(self.accounts)} comptes")
+        logger.info(f"ODK Account Pool initialized with {len(self.accounts)} compte(s)")
 
     @contextmanager
     def acquire_account(self, timeout=30):
@@ -73,23 +73,23 @@ class ODKAccountPool:
         thread_id = threading.current_thread().ident
         try:
             account = self.account_queue.get(timeout=timeout)
-            logger.debug(f"Compte ODK {account['id']} attribué au thread {thread_id}")
+            logger.debug(f"ODK account {account['id']} assigned to thread {thread_id}")
             return account
         except Empty:
             logger.error(
-                f"Aucun compte ODK disponible après {timeout} secondes (thread: {thread_id})"
+                f"No ODK account available after {timeout} seconds (thread: {thread_id})"
             )
-            raise TimeoutError(f"Aucun compte ODK disponible après {timeout} secondes")
+            raise TimeoutError(f"No ODK account available after {timeout} seconds")
         except Exception as e:
-            logger.error(f"Erreur de récupération de compte: {e} (thread: {thread_id})")
-            raise Exception(f"Erreur de récupération de compte ODK :{e}")
+            logger.error(f"Error retrieving account: {e} (thread: {thread_id})")
+            raise Exception(f"Error retrieving ODK account: {e}")
 
     def return_account(self, account) -> None:
         """Remet un compte dans le pool"""
         thread_id = threading.current_thread().ident
         self.account_queue.put(account)
         logger.debug(
-            f"Compte ODK {account['id']} retourné au pool par le thread {thread_id}"
+            f"ODK account {account['id']} returned to the pool by thread {thread_id}"
         )
 
     def get_session_for_account(self, account) -> dict:
@@ -105,9 +105,7 @@ class ODKAccountPool:
                 or session_info.get("expires_at")
                 and session_info["expires_at"] < current_time
             ):
-                logger.debug(
-                    f"Réinitialisation de la session pour le compte {account_id}"
-                )
+                logger.debug(f"Resetting session for account {account_id}")
                 self.account_sessions[account_id] = {
                     "session": requests.Session(),
                     "token": None,
@@ -119,5 +117,5 @@ class ODKAccountPool:
         for account_id, session_info in self.account_sessions.items():
             if session_info["session"]:
                 session_info["session"].close()
-                logger.debug(f"Session fermée pour le compte {account_id}")
+                logger.debug(f"Session closed for account {account_id}")
         self.account_sessions.clear()

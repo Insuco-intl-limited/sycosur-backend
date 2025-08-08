@@ -17,8 +17,12 @@
     <orderEntry type="jdk" jdkName="Python 3.11.2 WSL (Debian): (/mnt/c/Users/ayiek/workspace/Sycosur/backend/venv/bin/python3)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
+  <component name="PackageRequirementsSettings">
+    <option name="requirementsPath" value="" />
+  </component>
   <component name="PyDocumentationSettings">
     <option name="format" value="PLAIN" />
     <option name="myDocStringFormat" value="Plain" />
+    <option name="renderExternalDocumentation" value="true" />
   </component>
 </module>

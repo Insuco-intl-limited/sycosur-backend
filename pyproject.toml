@@ -76,7 +76,7 @@ module = "*.tests.*"
 ignore_errors = true
 
 [tool.pytest.ini_options]
-DJANGO_SETTINGS_MODULE = "config.settings.local"
+DJANGO_SETTINGS_MODULE = "config.settings.local" #TODO change to production settings in production
 python_files = "test_*.py"
 pythonpath = "."
 testpaths = ["core_apps"]

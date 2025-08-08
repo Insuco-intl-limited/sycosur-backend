@@ -16,5 +16,5 @@ staticfiles/
 .envs/.env.prod.example
 secrets.json
 .idea
-/doc
+/docs
 /credentials

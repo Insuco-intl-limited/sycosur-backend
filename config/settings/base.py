@@ -45,6 +45,16 @@ THIRD_PARTY_APPS = [
     # "django_celery_beat",
 ]
 
+# Redis cache settings
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://redis:6379/1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        },
+    }
+}
 LOCAL_APPS = [
     "core_apps.users",
     "core_apps.common",
@@ -304,7 +314,7 @@ THOUSAND_SEPARATOR = "."
 
 # ODK account settings
 ODK_ADMIN_EMAIL = "admin@insuco.com"
-ODK_ADMIN_PASSWORD = "@@AYIEKSKY0537"
+ODK_ADMIN_PASSWORD = "INSUCO2520"
 
 ODK_ADMIN_EMAIL2 = getenv("ODK_ADMIN_EMAIL2")
 ODK_ADMIN_PASSWORD2 = getenv("ODK_ADMIN_PASSWORD2")
