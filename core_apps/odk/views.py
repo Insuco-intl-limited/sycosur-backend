@@ -1,20 +1,21 @@
 import logging
+import mimetypes
+from concurrent.futures import TimeoutError as ConcurrentTimeoutError
 
 from rest_framework import generics, status
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from celery.exceptions import TimeoutError as CeleryTimeoutError
 
 from core_apps.common.renderers import GenericJSONRenderer
 from core_apps.odk.services.allServices import ODKCentralService
-
+from core_apps.odk.models import ODKProjects
 from .cache import ODKCacheManager
-
+from .serializers import ODKCreateProjectSerializer
 logger = logging.getLogger(__name__)
-
+from .tasks import convert_excel_to_xform_task
 
 class ODKProjectListView(APIView):
-    permission_classes = [IsAuthenticated]
     renderer_classes = [GenericJSONRenderer]
     object_label = "odk_projects"
 
@@ -57,232 +58,194 @@ class ODKProjectListView(APIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
+class ODKProjectCreateView(APIView):
+    # renderer_classes = [GenericJSONRenderer]
+    # object_label = "odk_project"
 
-# class ODKProjectDetailView(APIView):
-#     permission_classes = [IsAuthenticated, HasODKAccess, HasODKProjectPermission]
-#     renderer_classes = [GenericJSONRenderer]
-#     object_label = "odk_project"
-#
-#     def get(self, request, project_id):
-#         """Détail d'un projet ODK avec ses formulaires"""
-#         # Vérifie le cache pour les formulaires
-#         cached_forms = ODKCacheManager.get_cached_project_forms(
-#             request.user.id,
-#             project_id
-#         )
-#
-#         try:
-#             with ODKCentralService(request.user) as odk_service:
-#                 # Récupère les détails du projet
-#                 project_data = odk_service.get_project(project_id)
-#
-#                 # Pour les formulaires, utilise le cache ou récupère depuis ODK
-#                 if cached_forms:
-#                     forms = cached_forms
-#                     forms_cached = True
-#                 else:
-#                     forms = odk_service.get_project_forms(project_id)
-#                     ODKCacheManager.cache_project_forms(request.user.id, project_id, forms)
-#                     forms_cached = False
-#
-#                 # Synchronise le projet dans la base Django si nécessaire
-#                 try:
-#                     django_project = ODKProject.objects.get(odk_id=project_id)
-#                 except ODKProject.DoesNotExist:
-#                     django_project = odk_service.sync_project(project_id)
-#
-#                 # Récupère la permission de l'utilisateur pour ce projet
-#                 user_permission = django_project.get_user_permission(request.user)
-#
-#                 return Response({
-#                     'project': project_data,
-#                     'forms': forms,
-#                     'forms_cached': forms_cached,
-#                     'django_id': django_project.id,
-#                     'user_permission': user_permission.permission_level if user_permission else None
-#                 }, status=status.HTTP_200_OK)
-#
-#         except Exception as e:
-#             logger.error(f"Erreur lors de la récupération des détails du projet ODK {project_id}: {e}")
-#             return Response({
-#                 'error': 'Impossible de récupérer les détails du projet',
-#                 'detail': str(e)
-#             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-#
-#
-# class ODKFormDetailView(APIView):
-#     permission_classes = [IsAuthenticated, HasODKAccess, HasODKProjectPermission]
-#     renderer_classes = [GenericJSONRenderer]
-#     object_label = "odk_form"
-#
-#     def get(self, request, project_id, form_id):
-#         """Détail d'un formulaire ODK avec ses soumissions"""
-#         # Vérifie le cache pour les soumissions
-#         cached_submissions = ODKCacheManager.get_cached_form_submissions(
-#             request.user.id,
-#             project_id,
-#             form_id
-#         )
-#
-#         try:
-#             with ODKCentralService(request.user) as odk_service:
-#                 # Pour les soumissions, utilise le cache ou récupère depuis ODK
-#                 if cached_submissions:
-#                     submissions = cached_submissions
-#                     submissions_cached = True
-#                 else:
-#                     submissions = odk_service.get_form_submissions(project_id, form_id)
-#                     ODKCacheManager.cache_form_submissions(
-#                         request.user.id,
-#                         project_id,
-#                         form_id,
-#                         submissions
-#                     )
-#                     submissions_cached = False
-#
-#                 # Récupère la liste des formulaires pour identifier celui-ci
-#                 forms = odk_service.get_project_forms(project_id)
-#                 current_form = next((f for f in forms if f['xmlFormId'] == form_id), None)
-#
-#                 if not current_form:
-#                     return Response({
-#                         'error': 'Formulaire non trouvé'
-#                     }, status=status.HTTP_404_NOT_FOUND)
-#
-#                 # Synchronise le formulaire dans la base Django si nécessaire
-#                 try:
-#                     django_project = ODKProject.objects.get(odk_id=project_id)
-#                     try:
-#                         django_form = ODKForm.objects.get(project=django_project, odk_id=form_id)
-#                     except ODKForm.DoesNotExist:
-#                         odk_service.sync_project_forms(project_id)
-#                         django_form = ODKForm.objects.get(project=django_project, odk_id=form_id)
-#                 except (ODKProject.DoesNotExist, ODKForm.DoesNotExist):
-#                     django_form = None
-#
-#                 return Response({
-#                     'form': current_form,
-#                     'submissions': submissions,
-#                     'submissions_cached': submissions_cached,
-#                     'submissions_count': len(submissions),
-#                     'django_id': django_form.id if django_form else None
-#                 }, status=status.HTTP_200_OK)
-#
-#         except Exception as e:
-#             logger.error(f"Erreur lors de la récupération des détails du formulaire ODK {form_id}: {e}")
-#             return Response({
-#                 'error': 'Impossible de récupérer les détails du formulaire',
-#                 'detail': str(e)
-#             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-#
-#
-# class ODKSyncProjectView(APIView):
-#     permission_classes = [IsAuthenticated, HasODKAccess, CanManageODKProjects]
-#     renderer_classes = [GenericJSONRenderer]
-#     object_label = "sync_result"
-#
-#     def post(self, request, project_id):
-#         """Synchronise un projet ODK avec la base Django"""
-#         try:
-#             with ODKCentralService(request.user) as odk_service:
-#                 # Synchronise le projet
-#                 project = odk_service.sync_project(project_id)
-#
-#                 # Synchronise ses formulaires
-#                 forms = odk_service.sync_project_forms(project_id)
-#
-#                 # Invalide le cache
-#                 ODKCacheManager.invalidate_project_cache(request.user.id, project_id)
-#
-#                 return Response({
-#                     'success': True,
-#                     'project': ODKProjectSerializer(project, context={'request': request}).data,
-#                     'forms_count': len(forms),
-#                     'message': f'Projet {project.name} synchronisé avec succès'
-#                 }, status=status.HTTP_200_OK)
-#
-#         except Exception as e:
-#             logger.error(f"Erreur lors de la synchronisation du projet ODK {project_id}: {e}")
-#             return Response({
-#                 'success': False,
-#                 'error': 'Impossible de synchroniser le projet',
-#                 'detail': str(e)
-#             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-#
-#
-# class ODKProjectPermissionListView(generics.ListCreateAPIView):
-#     permission_classes = [IsAuthenticated, HasODKAccess, CanManageODKProjects]
-#     serializer_class = ODKProjectPermissionSerializer
-#     renderer_classes = [GenericJSONRenderer]
-#     object_label = "odk_permissions"
-#
-#     def get_queryset(self):
-#         project_id = self.kwargs.get('project_id')
-#
-#         if project_id:
-#             # Récupère les permissions pour un projet spécifique
-#             project = get_object_or_404(ODKProject, odk_id=project_id)
-#             return ODKProjectPermission.objects.filter(project=project)
-#
-#         # Sinon, toutes les permissions que l'utilisateur peut voir
-#         if self.request.user.profile.odk_role == self.request.user.profile.ODKRole.ADMINISTRATOR:
-#             return ODKProjectPermission.objects.all()
-#
-#         # Pour les managers, seulement leurs projets
-#         return ODKProjectPermission.objects.filter(
-#             project__in=ODKProject.objects.filter(created_by=self.request.user)
-#         )
-#
-#     def perform_create(self, serializer):
-#         serializer.save(granted_by=self.request.user)
-#
-#
-# class ODKProjectPermissionDetailView(generics.RetrieveUpdateDestroyAPIView):
-#     permission_classes = [IsAuthenticated, HasODKAccess, CanManageODKProjects]
-#     serializer_class = ODKProjectPermissionSerializer
-#     queryset = ODKProjectPermission.objects.all()
-#     renderer_classes = [GenericJSONRenderer]
-#     object_label = "odk_permission"
-#
-#     def perform_update(self, serializer):
-#         serializer.save(granted_by=self.request.user)
-#
-#
-# class ODKSystemStatusView(APIView):
-#     permission_classes = [IsAuthenticated, HasODKAccess]
-#     renderer_classes = [GenericJSONRenderer]
-#     object_label = "odk_status"
-#
-#     def get(self, request):
-#         """Vérifie l'état du système ODK Central"""
-#         try:
-#             with ODKCentralService(request.user) as odk_service:
-#                 # Tente de récupérer les projets pour vérifier la connexion
-#                 projects = odk_service.get_projects()
-#
-#                 # Vérifie le pool de comptes
-#                 account_pool_size = len(odk_account_pool.accounts)
-#                 account_pool_available = odk_account_pool.account_queue.qsize()
-#
-#                 return Response({
-#                     'status': 'online',
-#                     'api_url': odk_service.base_url,
-#                     'user_role': request.user.profile.get_odk_role_display(),
-#                     'account_pool': {
-#                         'total': account_pool_size,
-#                         'available': account_pool_available,
-#                         'busy': account_pool_size - account_pool_available
-#                     },
-#                     'projects_count': len(projects),
-#                     'timestamp': timezone.now().isoformat()
-#                 }, status=status.HTTP_200_OK)
-#
-#         except Exception as e:
-#             logger.error(f"Erreur lors de la vérification de l'état du système ODK: {e}")
-#             return Response({
-#                 'status': 'offline',
-#                 'error': str(e),
-#                 'timestamp': timezone.now().isoformat()
-#             }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
-# # Create your views here.
-#
+    def post(self, request):
+        """Create a new project in the app without creating it in ODK Central"""
+        try:
+            # Create project in Django database first
+            serializer = ODKCreateProjectSerializer(
+                data=request.data,
+                context={'request': request}
+            )
+
+            if not serializer.is_valid():
+                return Response(
+                    serializer.errors,
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            project = serializer.save()
+
+            # Project is created only in the Django database
+            # The ODK project will be created when a form is associated with this project
+
+            # Invalidate projects cache for this user
+            ODKCacheManager.invalidate_user_cache(request.user.id)
+
+            # Return the created project
+            return Response(
+                status=status.HTTP_201_CREATED
+            )
+
+        except Exception as e:
+            logger.error(f"Error creating project: {e}")
+            return Response(
+                {'error': 'Unable to create project', 'detail': str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+class ODKFormCreateView(APIView):
+    """
+    Vue pour la création de formulaires ODK.
+    Accepte des fichiers XML ou XLSX et les envoie directement à l'API ODK Central
+    sans conversion préalable.
+    """
+    renderer_classes = [GenericJSONRenderer]
+    object_label = "odk_form"
+
+    def validate_file(self, file):
+        valid_extensions = ['.xml', '.xlsx']
+        file_extension = f".{file.name.split('.')[-1].lower()}"
+        if file_extension not in valid_extensions:
+            raise ValueError(f"Invalid file extension. Expected {', '.join(valid_extensions)}, got {file_extension}")
+
+        mime_type, _ = mimetypes.guess_type(file.name)
+        valid_mimes = [
+            'text/xml',
+            'application/xml',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        ]
+
+        # Additional check for XML files that might not be detected properly
+        if file_extension == '.xml':
+
+            file.seek(0)
+            try:
+                first_bytes = file.read(100).decode('utf-8', errors='ignore').strip()
+                file.seek(0)
+                if first_bytes.startswith('<?xml') or first_bytes.startswith('<'):
+                    return file_extension
+                else:
+                    raise ValueError("File does not appear to be valid XML")
+            except Exception:
+                file.seek(0)
+                raise ValueError("Unable to read file content")
+
+        # For Excel files, check mime type
+        if file_extension == '.xlsx':
+            if mime_type not in valid_mimes:
+                # Additional check by reading file signature
+                file.seek(0)
+                file_signature = file.read(4)
+                file.seek(0)
+                # Excel files start with PK (ZIP signature)
+                if file_signature[:2] == b'PK':
+                    return file_extension
+                else:
+                    raise ValueError("File does not appear to be a valid Excel file")
+            return file_extension
+
+        if mime_type not in valid_mimes:
+            raise ValueError(f"Invalid file type. Expected XML or Excel, got {mime_type}")
+
+        return file_extension
+
+    def post(self, request, project_id):
+        try:
+            # Vérifier le projet Django
+            try:
+                django_project = ODKProjects.objects.get(pk=project_id)
+            except ODKProjects.DoesNotExist:
+                return Response(
+                    {'error': 'Project not found'},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+
+            # Vérifier le fichier
+            form_file = request.FILES.get('form')
+            if not form_file:
+                return Response(
+                    {'error': 'Form file is required'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Valider la taille du fichier
+            if form_file.size > 100 * 1024 * 1024:
+                return Response(
+                    {'error': 'File too large', 'detail': 'Maximum file size is 100MB'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Valider le type de fichier
+            try:
+                file_extension = self.validate_file(form_file)
+            except ValueError as e:
+                return Response(
+                    {'error': 'Invalid file', 'detail': str(e)},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Traiter le fichier directement sans conversion
+            form_file.seek(0)  # Remettre le curseur au début du fichier
+            is_xlsx = file_extension == '.xlsx'
+            
+            if is_xlsx:
+                # Pour les fichiers XLSX, utiliser directement les données binaires
+                form_data = form_file.read()
+                # logger.info(form_data)
+            else:
+                # Pour les fichiers XML, lire le contenu
+                form_data = form_file.read()
+                if not is_xlsx:
+                    # Décoder en texte uniquement pour les fichiers XML (pour la compatibilité avec le code existant)
+                    try:
+                        form_data = form_data.decode('utf-8')
+                    except UnicodeDecodeError:
+                        return Response(
+                            {'error': 'Invalid XML file', 'detail': 'The file could not be decoded as UTF-8'},
+                            status=status.HTTP_400_BAD_REQUEST
+                        )
+
+            # Créer le formulaire dans ODK Central
+            created_new_odk_project = False
+            with ODKCentralService(request.user) as odk_service:
+                try:
+                    had_odk_project = django_project.odk_id is not None
+                    odk_project_id = odk_service.ensure_odk_project_exists(django_project)
+                    if not had_odk_project:
+                        created_new_odk_project = True
+
+                    form = odk_service.create_form(odk_project_id, form_data, is_xlsx=is_xlsx)
+                    ODKCacheManager.invalidate_project_cache(request.user.id, odk_project_id)
+
+                    return Response(
+                        {'form': form},
+                        status=status.HTTP_201_CREATED
+                    )
+
+                except Exception as e:
+                    if created_new_odk_project:
+                        try:
+                            logger.info(f"Rolling back ODK project creation for project {django_project.pkid}")
+                            odk_service.delete_project(odk_project_id)
+                            django_project.odk_id = None
+                            django_project.save()
+                            logger.info(f"Successfully rolled back ODK project creation for project {django_project.pkid}")
+                        except Exception as rollback_error:
+                            logger.error(f"Error rolling back ODK project creation: {rollback_error}")
+                    raise e
+
+        except Exception as e:
+            logger.error(f"Error creating form: {e}")
+            return Response(
+                {
+                    'error': 'Unable to create form',
+                    'detail': str(e),
+                    'message': 'Form creation failed and all changes have been rolled back'
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )

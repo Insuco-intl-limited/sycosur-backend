@@ -1,18 +1,20 @@
 from django.urls import path
 
 from .views import (  # ODKProjectDetailView,; ODKFormDetailView,; ODKSyncProjectView,; ODKProjectPermissionListView,; ODKProjectPermissionDetailView,; ODKSystemStatusView
-    ODKProjectListView,
+    ODKProjectListView, ODKProjectCreateView, ODKFormCreateView,
 )
 
 app_name = "odk"
 
 urlpatterns = [
     # Projets
-    path("projects/", ODKProjectListView.as_view(), name="projects-list"),
+    path("projects", ODKProjectListView.as_view(), name="projects-list"),
+    path("projects/", ODKProjectCreateView.as_view(), name="add-project"),
     # path("projects/<int:project_id>/", ODKProjectDetailView.as_view(), name="project-detail"),
     # path("projects/<int:project_id>/sync/", ODKSyncProjectView.as_view(), name="project-sync"),
     #
     # # Formulaires
+    path("projects/<int:project_id>/forms/", ODKFormCreateView.as_view(), name="add-form"),
     # path("projects/<int:project_id>/forms/<str:form_id>/", ODKFormDetailView.as_view(), name="form-detail"),
     #
     # # Permissions

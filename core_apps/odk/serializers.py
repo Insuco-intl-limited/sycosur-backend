@@ -2,13 +2,22 @@ from django.contrib.auth import get_user_model
 
 from rest_framework import serializers
 
-from .models import ODKProjectPermissions, ODKProjects
+from .models import ODKProjectPermissions, ODKProjects, User
 
-User = get_user_model()
+# User = get_user_model()
+
+class ODKCreateProjectSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ODKProjects
+        fields = ["name", "description"]
+
+    def create(self, validated_data):
+        validated_data["created_by"] = self.context["request"].user
+        return super().create(validated_data)
 
 
 class ODKProjectSerializer(serializers.ModelSerializer):
-    """Sérialiseur pour les projets ODK"""
+    """Sérialiseur pour les projets ODK (liste)"""
 
     permission_level = serializers.SerializerMethodField()
     forms_count = serializers.SerializerMethodField()
@@ -35,19 +44,6 @@ class ODKProjectSerializer(serializers.ModelSerializer):
 
     def get_forms_count(self, obj):
         return obj.forms.count()
-
-
-# class ODKFormSerializer(serializers.ModelSerializer):
-#     """Sérialiseur pour les formulaires ODK"""
-#     project_name = serializers.ReadOnlyField(source='project.name')
-#
-#     class Meta:
-#         model = ODKForm
-#         fields = ['id', 'odk_id', 'name', 'version', 'state',
-#                  'submissions_count', 'last_sync', 'created_at',
-#                  'project', 'project_name']
-#         read_only_fields = ['id', 'odk_id', 'last_sync', 'created_at',
-#                            'submissions_count', 'project_name']
 
 
 class ODKProjectPermissionSerializer(serializers.ModelSerializer):

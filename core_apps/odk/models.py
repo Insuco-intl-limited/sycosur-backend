@@ -1,6 +1,5 @@
-from datetime import timezone
-
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -10,9 +9,8 @@ User = get_user_model()
 
 
 class ODKProjects(TimeStampedModel):
-
-    odk_id = models.BigIntegerField(unique=True, verbose_name="ODK Project ID")
-    name = models.CharField(max_length=150, verbose_name="Project name")
+    odk_id = models.BigIntegerField(unique=True, verbose_name="ODK Project ID", null=True)
+    name = models.CharField(max_length=150, verbose_name="Project name", unique=True)
     description = models.TextField(null=True, verbose_name="Description")
     archived = models.BooleanField(default=False, verbose_name="Archived")
     last_sync = models.DateTimeField(
@@ -37,7 +35,7 @@ class ODKProjects(TimeStampedModel):
     def get_user_permissions(self):
         """Get user's permissions for this project"""
         try:
-            return ODKProjectPermissions.objects.get(user=user, project=self)
+            return ODKProjectPermissions.objects.get(user=User, project=self)
         except ODKProjectPermissions.DoesNotExist:
             return None
 
@@ -136,7 +134,7 @@ class ODKAuditLogs(TimeStampedModel):
         default=None,
     )
     # Identifies the specific resource instance affected (e.g., the ID of a project or user)
-    resource_id = models.BigIntegerField(verbose_name="Resource ID")
+    resource_id = models.CharField(verbose_name="Resource ID")
     details = models.JSONField(verbose_name="Details")
     success = models.BooleanField(default=True, verbose_name="Success")
     user = models.ForeignKey(

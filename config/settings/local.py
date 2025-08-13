@@ -10,7 +10,7 @@ local_env_file = path.join(BASE_DIR, ".envs", ".env.local")
 if path.isfile(local_env_file):
     load_dotenv(local_env_file)
 
-DEBUG = True
+DEBUG = False
 
 SITE_NAME = getenv("SITE_NAME")
 
@@ -34,6 +34,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:8025",
     "https://drive.google.com",
     "https://googleusercontent.com",
+    "https://odk.insuco.net",
 ]
 
 ADMIN_URL = getenv("DJANGO_ADMIN_URL")

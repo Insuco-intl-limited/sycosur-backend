@@ -62,6 +62,11 @@ class GenericJSONRenderer(JSONRenderer):
 
         status_code = response.status_code
 
+        #handle case where data is None
+        # if data is None:
+        #     data = {}
+
+
         # Pass error responses directly to the parent renderer
         # This preserves the error format from DRF
         errors = data.get("errors", None)

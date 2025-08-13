@@ -1,8 +1,8 @@
 import logging
 import threading
 from contextlib import contextmanager
-from datetime import datetime
 from multiprocessing.context import TimeoutError
+from django.utils import timezone
 from queue import Empty, Queue
 
 from django.conf import settings
@@ -98,7 +98,7 @@ class ODKAccountPool:
 
         with self.account_locks[account_id]:
             session_info = self.account_sessions.get(account_id)
-            current_time = datetime.utcnow()
+            current_time = timezone.now()
             # Réinitialise la session si elle est expirée ou absente
             if (
                 session_info is None

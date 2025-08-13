@@ -107,8 +107,8 @@ class BaseODKService:
         """Make a request to ODK Central with retry and error handling"""
 
         # Use configuration or default values
-        max_retries = getattr(settings, "ODK_MAX_RETRIES", 3)
-        timeout = getattr(settings, "ODK_REQUEST_TIMEOUT", 30)
+        max_retries = getattr(settings, "ODK_MAX_RETRIES", 5)
+        timeout = getattr(settings, "ODK_REQUEST_TIMEOUT", 120)
 
         # Add default timeout if not specified
         if "timeout" not in kwargs:
