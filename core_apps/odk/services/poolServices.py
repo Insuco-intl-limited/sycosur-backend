@@ -31,7 +31,7 @@ class ODKAccountPool:
             {
                 "email": settings.ODK_ADMIN_EMAIL,
                 "password": settings.ODK_ADMIN_PASSWORD,
-                "id": 6,
+                "id": 5,
             }
         ]
 
@@ -43,7 +43,7 @@ class ODKAccountPool:
                 {
                     "email": settings.ODK_ADMIN_EMAIL_2,
                     "password": settings.ODK_ADMIN_PASSWORD_2,
-                    "id": 7,
+                    "id": 6,
                 }
             )
 

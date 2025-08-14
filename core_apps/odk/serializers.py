@@ -1,10 +1,5 @@
-from django.contrib.auth import get_user_model
-
 from rest_framework import serializers
-
 from .models import ODKProjectPermissions, ODKProjects, User
-
-# User = get_user_model()
 
 class ODKCreateProjectSerializer(serializers.ModelSerializer):
     class Meta:
@@ -91,16 +86,12 @@ class ODKProjectPermissionSerializer(serializers.ModelSerializer):
         return attrs
 
 
-# class ODKSubmissionSerializer(serializers.Serializer):
-#     """Sérialiseur pour les soumissions ODK (structure dynamique)"""
-#     id = serializers.CharField(read_only=True)
-#     instanceId = serializers.CharField(read_only=True)
-#     submitterId = serializers.CharField(read_only=True)
-#     deviceId = serializers.CharField(read_only=True, required=False, allow_null=True)
-#     createdAt = serializers.DateTimeField(read_only=True)
-#     updatedAt = serializers.DateTimeField(read_only=True)
-#     submitterName = serializers.CharField(read_only=True, required=False, allow_null=True)
-#     attachmentsPresent = serializers.IntegerField(read_only=True, required=False)
-#     attachmentsExpected = serializers.IntegerField(read_only=True, required=False)
-#     # Le contenu effectif de la soumission est dynamique
-#     content = serializers.JSONField(read_only=True)
+# for test purpose only
+# class FormUploadSerializer(serializers.Serializer):
+#     project_id = serializers.IntegerField()
+#     form_file = serializers.FileField()
+#     ignore_warnings = serializers.BooleanField(default=False)
+#     publish = serializers.BooleanField(default=False)
+#     form_id_fallback = serializers.CharField(max_length=255, required=False)
+#
+

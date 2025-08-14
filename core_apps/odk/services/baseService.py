@@ -17,12 +17,12 @@ from .poolServices import ODKAccountPool
 
 logger = logging.getLogger(__name__)
 
-
 class BaseODKService:
     """Base service for interacting with the ODK Central API"""
 
-    def __init__(self, django_user):
+    def __init__(self, django_user, request=None):
         self.django_user = django_user
+        self.request = request
         self.base_url = getattr(
             settings, "ODK_CENTRAL_URL", "https://odk.insuco.net/v1"
         )
@@ -105,7 +105,6 @@ class BaseODKService:
 
     def _make_request(self, method: str, endpoint: str, **kwargs) -> Any:
         """Make a request to ODK Central with retry and error handling"""
-
         # Use configuration or default values
         max_retries = getattr(settings, "ODK_MAX_RETRIES", 5)
         timeout = getattr(settings, "ODK_REQUEST_TIMEOUT", 120)
@@ -199,6 +198,14 @@ class BaseODKService:
 
         raise Exception(f"Maximum number of attempts exceeded for {method} {endpoint}")
 
+    def get_client_ip(self) -> str:
+        x_forwarded_for = self.request.META.get("HTTP_X_FORWARDED_FOR")
+        if x_forwarded_for:
+            ip = x_forwarded_for.split(",")[0]
+        else:
+            ip = self.request.META.get("REMOTE_ADDR")
+        return ip
+
     def _log_action(
         self,
         action: str,
@@ -216,6 +223,7 @@ class BaseODKService:
                 resource_id=resource_id,
                 details=details,
                 success=success,
+                ip_address=self.get_client_ip(),
             )
         except Exception as e:
             logger.error(f"Error while writing to audit log: {e}")

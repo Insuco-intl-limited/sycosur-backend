@@ -8,6 +8,8 @@ logger = logging.getLogger(__name__)
 
 class ODKProjectService(BaseODKService, ODKPermissionMixin):
     """Service pour la gestion des projets ODK"""
+    def __init__(self, django_user, request=None):
+        super().__init__(django_user, request=request)
 
     def ensure_odk_project_exists(self, django_project):
         """
@@ -73,7 +75,7 @@ class ODKProjectService(BaseODKService, ODKPermissionMixin):
             self._log_action(
                 "list_projects",
                 "project",
-                0,
+                "all projects",
                 {"count": len(projects), "odk_account": self.current_account["id"]},
                 success=True,
             )
@@ -83,7 +85,7 @@ class ODKProjectService(BaseODKService, ODKPermissionMixin):
             self._log_action(
                 "list_projects",
                 "project",
-                "all",
+                "all projects",
                 {
                     "error": str(e),
                     "odk_account": (
@@ -109,7 +111,7 @@ class ODKProjectService(BaseODKService, ODKPermissionMixin):
             self._log_action(
                 "list_accessible_projects",
                 "project",
-                0,
+                f"{self.django_user.first_name}' projects",
                 {
                     "total_projects": len(all_projects),
                     "accessible_count": len(accessible_projects),
@@ -124,7 +126,7 @@ class ODKProjectService(BaseODKService, ODKPermissionMixin):
             self._log_action(
                 "list_accessible_projects",
                 "project",
-                "all",
+                f"{self.django_user.first_name}' projects",
                 {
                     "error": str(e),
                     "odk_account": (
@@ -219,7 +221,7 @@ class ODKProjectService(BaseODKService, ODKPermissionMixin):
             self._log_action(
                 "create_project",
                 "project",
-                str(project.get("id", 0)),
+                str(project.id),
                 {"name": name, "odk_account": self.current_account["id"]},
                 success=True,
             )

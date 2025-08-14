@@ -6,6 +6,8 @@ logger = logging.getLogger(__name__)
 
 class ODKFormService(BaseODKService, ODKPermissionMixin):
     """Service pour la gestion des formulaires ODK"""
+    def __init__(self, django_user, request=None):
+        super().__init__(django_user, request=request)
 
     def get_project_forms(self, project_id: int) -> List[Dict]:
         """Récupère les formulaires d'un projet spécifique"""
@@ -79,50 +81,41 @@ class ODKFormService(BaseODKService, ODKPermissionMixin):
             )
             raise
 
-    def create_form(self, project_id: int, form_data, is_xlsx=False) -> Dict:
-        """
-        Crée un nouveau formulaire dans un projet.
-        
-        Args:
-            project_id: ID du projet ODK
-            form_data: Données du formulaire (XML en texte ou binaire, ou XLSX en binaire)
-            is_xlsx: Indique si les données sont au format XLSX (True) ou XML (False)
-            
-        Returns:
-            Dict: Informations sur le formulaire créé
-            
-        Raises:
-            PermissionError: Si l'utilisateur n'a pas accès au projet
-            Exception: Pour toute autre erreur lors de la création du formulaire
-        """
+    def create_form(self, project_id: int, form_data, filename, form_id=None, ignore_warnings=False,
+                    publish=False) -> dict:
+
         try:
             if not self._user_can_access_project_id(project_id):
                 raise PermissionError(
-                    f"L'utilisateur {self.django_user.get_full_name()} n'a pas accès au projet {project_id}"
+                    f" The user {self.django_user.get_full_name()} has not right on project id: {project_id}"
                 )
 
-            # Préparer les données du formulaire selon le format
-            if is_xlsx:
-                # Pour les fichiers XLSX, utiliser directement les données binaires
-                form_bytes = form_data if isinstance(form_data, bytes) else form_data
-                content_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                filename = "form.xlsx"
+            # Déterminer le Content-Type selon l’extension
+            if filename.endswith('.xlsx'):
+                content_type = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            elif filename.endswith('.xls'):
+                content_type = 'application/vnd.ms-excel'
             else:
-                # Pour les fichiers XML, encoder en bytes si nécessaire
-                if isinstance(form_data, str):
-                    form_bytes = form_data.encode('utf-8')
-                else:
-                    form_bytes = form_data
-                content_type = "application/xml"
-                filename = "form.xml"
+                content_type = 'application/xml'
 
-            # Préparer le fichier avec le type de contenu approprié
-            files = {"formId": (filename, form_bytes, content_type)}
+            headers = {"Content-Type": content_type}
+            if content_type != 'application/xml' and form_id:
+                headers["X-XlsForm-FormId-Fallback"] = form_id
 
+            params = {}
+            if ignore_warnings:
+                params["ignoreWarnings"] = "true"
+            if publish:
+                params["publish"] = "true"
+
+            # Envoi du fichier en tant que corps brut de la requête
             form = self._make_request(
-                "POST", f"projects/{project_id}/forms", files=files
+                "POST",
+                f"projects/{project_id}/forms",
+                data=form_data,
+                headers=headers,
+                params=params
             )
-
             self._log_action(
                 "create_form",
                 "form",
@@ -130,7 +123,6 @@ class ODKFormService(BaseODKService, ODKPermissionMixin):
                 {"odk_account": self.current_account["id"]},
                 success=True,
             )
-
             return form
         except Exception as e:
             self._log_action(
