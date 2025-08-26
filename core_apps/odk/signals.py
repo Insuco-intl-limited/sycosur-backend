@@ -4,12 +4,12 @@ from django.dispatch import receiver
 from django.utils import timezone
 
 from .cache import ODKCacheManager
-from .models import ODKProjectPermissions, ODKProjects
+from ..projects.models import Projects, ProjectPermissions
 
 User = get_user_model()
 
 
-@receiver(post_save, sender=ODKProjects)
+@receiver(post_save, sender=Projects)
 def invalidate_project_cache(sender, instance, created, **kwargs):
     """Invalide le cache lorsqu'un projet est modifié"""
     # Invalide le cache pour tous les utilisateurs ayant une permission sur ce projet
@@ -33,7 +33,7 @@ def invalidate_project_cache(sender, instance, created, **kwargs):
 #         ODKCacheManager.invalidate_project_cache(user.id, instance.project.odk_id)
 
 
-@receiver(post_save, sender=ODKProjectPermissions)
+@receiver(post_save, sender=ProjectPermissions)
 def invalidate_permission_cache(sender, instance, created, **kwargs):
     """Invalide le cache lorsqu'une permission est modifiée"""
     # Invalide le cache pour l'utilisateur concerné
@@ -41,7 +41,7 @@ def invalidate_permission_cache(sender, instance, created, **kwargs):
     ODKCacheManager.invalidate_user_cache(instance.user.id)
 
 
-# @receiver(post_delete, sender=ODKProjectPermissions)
+# @receiver(post_delete, sender=ProjectPermissions)
 # def invalidate_permission_cache_on_delete(sender, instance, **kwargs):
 #     """Invalide le cache lorsqu'une permission est supprimée"""
 #     # Invalide le cache pour l'utilisateur concerné

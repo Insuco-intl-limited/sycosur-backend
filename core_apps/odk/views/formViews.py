@@ -4,10 +4,11 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from core_apps.common.renderers import GenericJSONRenderer
-from core_apps.odk.services.allServices import ODKCentralService
-from core_apps.odk.models import ODKProjects
+from core_apps.odk.services import ODKCentralService
+
 from ..cache import ODKCacheManager
 from ..tasks import convert_excel_to_xform_task
+from core_apps.projects.models import Projects
 
 logger = logging.getLogger(__name__)
 
@@ -44,8 +45,8 @@ class ODKFormCreateView(APIView):
         try:
             # Check if the project exists in django db
             try:
-                django_project = ODKProjects.objects.get(pk=project_id)
-            except ODKProjects.DoesNotExist:
+                django_project = Projects.objects.get(pk=project_id)
+            except Projects.DoesNotExist:
                 return Response(
                     {'error': 'Project not found'},
                     status=status.HTTP_404_NOT_FOUND

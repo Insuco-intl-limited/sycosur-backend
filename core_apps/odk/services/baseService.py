@@ -10,7 +10,7 @@ from django.utils import timezone
 
 import requests
 
-from core_apps.odk.models import ODKAuditLogs, ODKUserSessions
+from core_apps.odk.models import ODKUserSessions, AuditLogs
 from core_apps.odk.utils import get_ssl_verify
 
 from .poolServices import ODKAccountPool
@@ -216,7 +216,7 @@ class BaseODKService:
     ) -> None:
         """Log an action in the audit log"""
         try:
-            ODKAuditLogs.objects.create(
+            AuditLogs.objects.create(
                 user=self.django_user,
                 action=action,
                 resource_type=resource_type,

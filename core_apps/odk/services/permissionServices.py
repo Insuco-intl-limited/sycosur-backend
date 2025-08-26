@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 
-from core_apps.odk.models import ODKProjectPermissions, ODKProjects
+from core_apps.projects.models import Projects, ProjectPermissions
 
 if TYPE_CHECKING:
     from django.contrib.auth import get_user_model
@@ -49,21 +49,21 @@ class ODKPermissionMixin:
 
         # Vérification des permissions spécifiques au projet
         try:
-            project = ODKProjects.objects.get(odk_id=project_id)
+            project = Projects.objects.get(odk_id=project_id)
 
             try:
                 # Si une permission explicite existe
-                ODKProjectPermissions.objects.get(
+                ProjectPermissions.objects.get(
                     user=self.django_user, project=project
                 )
                 return True
-            except ODKProjectPermissions.DoesNotExist:
+            except ProjectPermissions.DoesNotExist:
 
                 if profile.odk_role == profile.ODKRole.DATA_COLLECTOR:
                     return True
                 # Sinon, pas d'accès
                 return False
-        except ODKProjects.DoesNotExist:
+        except Projects.DoesNotExist:
             # Si le projet n'est pas encore dans la DB, on autorise l'accès aux superviseurs et +
             return profile.odk_role in [
                 profile.ODKRole.DATA_COLLECTOR,

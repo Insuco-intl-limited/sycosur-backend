@@ -60,6 +60,7 @@ LOCAL_APPS = [
     "core_apps.common",
     "core_apps.profiles",
     "core_apps.odk",
+    "core_apps.projects",
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS

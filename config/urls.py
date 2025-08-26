@@ -29,6 +29,7 @@ urlpatterns = [
     path("api/v1/auth/", include("djoser.urls")),
     path("api/v1/auth/", include("core_apps.users.urls")),
     path("api/v1/profiles/", include("core_apps.profiles.urls")),
+    path("api/v1/projects/", include("core_apps.projects.urls")),
     path("api/v1/odk/", include("core_apps.odk.urls")),
 ]
 

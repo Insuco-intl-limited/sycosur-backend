@@ -7,83 +7,82 @@ from core_apps.common.models import TimeStampedModel
 
 User = get_user_model()
 
+# class Projects(TimeStampedModel):
+#     odk_id = models.BigIntegerField(unique=True, verbose_name="ODK Project ID", null=True)
+#     name = models.CharField(max_length=150, verbose_name="Project name", unique=True)
+#     description = models.TextField(null=True, verbose_name="Description")
+#     archived = models.BooleanField(default=False, verbose_name="Archived")
+#     last_sync = models.DateTimeField(
+#         auto_now=True, verbose_name="Last synchronization", null=True
+#     )
+#     created_by = models.ForeignKey(
+#         User,
+#         null=True,
+#         on_delete=models.SET_NULL,
+#         verbose_name="Created by",
+#         related_name="owner",
+#     )
+#
+#     class Meta:
+#         db_table = "projects"
+#         verbose_name = "Project"
+#         verbose_name_plural = "Projects"
+#
+#     def __str__(self) -> str:
+#         return self.name
+#
+#     def get_user_permissions(self):
+#         """Get user's permissions for this project"""
+#         try:
+#             return ProjectPermissions.objects.get(user=User, project=self)
+#         except ProjectPermissions.DoesNotExist:
+#             return None
 
-class ODKProjects(TimeStampedModel):
-    odk_id = models.BigIntegerField(unique=True, verbose_name="ODK Project ID", null=True)
-    name = models.CharField(max_length=150, verbose_name="Project name", unique=True)
-    description = models.TextField(null=True, verbose_name="Description")
-    archived = models.BooleanField(default=False, verbose_name="Archived")
-    last_sync = models.DateTimeField(
-        auto_now=True, verbose_name="Last synchronization", null=True
-    )
-    created_by = models.ForeignKey(
-        User,
-        null=True,
-        on_delete=models.SET_NULL,
-        verbose_name="Created by",
-        related_name="owner",
-    )
 
-    class Meta:
-        db_table = "projects"
-        verbose_name = "Project"
-        verbose_name_plural = "Projects"
-
-    def __str__(self) -> str:
-        return self.name
-
-    def get_user_permissions(self):
-        """Get user's permissions for this project"""
-        try:
-            return ODKProjectPermissions.objects.get(user=User, project=self)
-        except ODKProjectPermissions.DoesNotExist:
-            return None
-
-
-class ODKProjectPermissions(TimeStampedModel):
-    class Levels(models.TextChoices):
-        READER = (
-            "read",
-            _("View Project"),
-        )
-        CONTRIBUTOR = (
-            "contribute",
-            _("Project Contributor"),
-        )
-        MANAGER = (
-            "manage",
-            _("Project Manager"),
-        )
-        ADMINISTRATOR = (
-            "administrator",
-            _("Project Administrator"),
-        )
-
-    user = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name="odk_permissions",
-        verbose_name="User",
-    )
-    permission_level = models.CharField(
-        max_length=100,
-        choices=Levels.choices,
-        default=Levels.READER,
-    )
-    project = models.ForeignKey(
-        ODKProjects, on_delete=models.CASCADE, verbose_name="Project"
-    )
-    granted_by = models.ForeignKey(
-        User, on_delete=models.CASCADE, verbose_name="Granted by"
-    )
-
-    class Meta:
-        db_table = "project_permissions"
-        verbose_name = "Project Permission"
-        verbose_name_plural = "Project Permissions"
-
-    def __str__(self) -> str:
-        return f"{self.user.email} - {self.project.name} - {self.get_permission_level_display()}"
+# class ProjectPermissions(TimeStampedModel):
+#     class Levels(models.TextChoices):
+#         READER = (
+#             "read",
+#             _("View Project"),
+#         )
+#         CONTRIBUTOR = (
+#             "contribute",
+#             _("Project Contributor"),
+#         )
+#         MANAGER = (
+#             "manage",
+#             _("Project Manager"),
+#         )
+#         ADMINISTRATOR = (
+#             "administrator",
+#             _("Project Administrator"),
+#         )
+#
+#     user = models.ForeignKey(
+#         User,
+#         on_delete=models.CASCADE,
+#         related_name="odk_permissions",
+#         verbose_name="User",
+#     )
+#     permission_level = models.CharField(
+#         max_length=100,
+#         choices=Levels.choices,
+#         default=Levels.READER,
+#     )
+#     project = models.ForeignKey(
+#         Projects, on_delete=models.CASCADE, verbose_name="Project"
+#     )
+#     granted_by = models.ForeignKey(
+#         User, on_delete=models.CASCADE, verbose_name="Granted by"
+#     )
+#
+#     class Meta:
+#         db_table = "project_permissions"
+#         verbose_name = "Project Permission"
+#         verbose_name_plural = "Project Permissions"
+#
+#     def __str__(self) -> str:
+#         return f"{self.user.email} - {self.project.name} - {self.get_permission_level_display()}"
 
 
 class ODKUserSessions(TimeStampedModel):
@@ -108,7 +107,7 @@ class ODKUserSessions(TimeStampedModel):
         return self.token_expired_at > timezone.now()
 
 
-class ODKAuditLogs(TimeStampedModel):
+class AuditLogs(TimeStampedModel):
     class Resources(models.TextChoices):
         PROJECT = (
             "project",
@@ -146,9 +145,9 @@ class ODKAuditLogs(TimeStampedModel):
     )
 
     class Meta:
-        db_table = "odk_audit_logs"
-        verbose_name = "ODK Audit Log"
-        verbose_name_plural = "ODK Audit Logs"
+        db_table = "audit_logs"
+        verbose_name = "Sycosur Audit Log"
+        verbose_name_plural = "Sycosur Audit Logs"
 
     def __str__(self) -> str:
         status = "succeeded" if self.success else "failed"
