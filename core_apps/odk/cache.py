@@ -155,7 +155,7 @@ class ODKCacheManager:
         logger.info(
             f"Cache du projet ODK {project_id} invalidé pour l'utilisateur {user_id}"
         )
+
     #
     # @classmethod
     # def invalidate_project_forms(user_id, project_id, form_id):
-

@@ -1,11 +1,14 @@
 import logging
+
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from core_apps.common.renderers import GenericJSONRenderer
 from core_apps.odk.services import ODKCentralService
+
 from ..cache import ODKCacheManager
+
 # from ..serializers import ODKCreateProjectSerializer
 
 
@@ -32,7 +35,7 @@ class ODKProjectListView(APIView):
 
         # Sinon, récupère depuis ODK avec le pool de comptes
         try:
-            with ODKCentralService(request.user,request=request) as odk_service:
+            with ODKCentralService(request.user, request=request) as odk_service:
                 projects = odk_service.get_accessible_projects()
 
                 # Met en cache le résultat
@@ -54,6 +57,7 @@ class ODKProjectListView(APIView):
                 {"error": "Impossible de récupérer les projets", "detail": str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+
 
 # class ODKProjectCreateView(APIView):
 #     # renderer_classes = [GenericJSONRenderer]

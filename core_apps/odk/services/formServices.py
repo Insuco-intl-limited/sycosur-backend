@@ -1,11 +1,15 @@
-from typing import Dict, List
 import logging
+from typing import Dict, List
+
 from .baseService import BaseODKService
 from .permissionServices import ODKPermissionMixin
+
 logger = logging.getLogger(__name__)
+
 
 class ODKFormService(BaseODKService, ODKPermissionMixin):
     """Service pour la gestion des formulaires ODK"""
+
     def __init__(self, django_user, request=None):
         super().__init__(django_user, request=request)
 
@@ -81,8 +85,15 @@ class ODKFormService(BaseODKService, ODKPermissionMixin):
             )
             raise
 
-    def create_form(self, project_id: int, form_data, filename, form_id=None, ignore_warnings=False,
-                    publish=False) -> dict:
+    def create_form(
+        self,
+        project_id: int,
+        form_data,
+        filename,
+        form_id=None,
+        ignore_warnings=False,
+        publish=False,
+    ) -> dict:
 
         try:
             if not self._user_can_access_project_id(project_id):
@@ -91,15 +102,17 @@ class ODKFormService(BaseODKService, ODKPermissionMixin):
                 )
 
             # Déterminer le Content-Type selon l’extension
-            if filename.endswith('.xlsx'):
-                content_type = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-            elif filename.endswith('.xls'):
-                content_type = 'application/vnd.ms-excel'
+            if filename.endswith(".xlsx"):
+                content_type = (
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                )
+            elif filename.endswith(".xls"):
+                content_type = "application/vnd.ms-excel"
             else:
-                content_type = 'application/xml'
+                content_type = "application/xml"
 
             headers = {"Content-Type": content_type}
-            if content_type != 'application/xml' and form_id:
+            if content_type != "application/xml" and form_id:
                 headers["X-XlsForm-FormId-Fallback"] = form_id
 
             params = {}
@@ -114,7 +127,7 @@ class ODKFormService(BaseODKService, ODKPermissionMixin):
                 f"projects/{project_id}/forms",
                 data=form_data,
                 headers=headers,
-                params=params
+                params=params,
             )
             self._log_action(
                 "create_form",

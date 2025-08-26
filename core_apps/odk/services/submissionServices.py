@@ -6,6 +6,7 @@ from .permissionServices import ODKPermissionMixin
 
 class ODKSubmissionService(BaseODKService, ODKPermissionMixin):
     """Service pour la gestion des soumissions ODK"""
+
     def __init__(self, django_user, request=None):
         super().__init__(django_user, request=request)
 

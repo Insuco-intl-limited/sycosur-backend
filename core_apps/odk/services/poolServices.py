@@ -2,10 +2,10 @@ import logging
 import threading
 from contextlib import contextmanager
 from multiprocessing.context import TimeoutError
-from django.utils import timezone
 from queue import Empty, Queue
 
 from django.conf import settings
+from django.utils import timezone
 
 import requests
 

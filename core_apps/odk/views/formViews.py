@@ -1,22 +1,26 @@
 import logging
+
 from rest_framework import generics, status
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.permissions import AllowAny, IsAuthenticated
+
 from core_apps.common.renderers import GenericJSONRenderer
 from core_apps.odk.services import ODKCentralService
+from core_apps.projects.models import Projects
 
 from ..cache import ODKCacheManager
 from ..tasks import convert_excel_to_xform_task
-from core_apps.projects.models import Projects
 
 logger = logging.getLogger(__name__)
 
 
 class ODKFormCreateView(APIView):
-    renderer_classes = [GenericJSONRenderer,]
-    object_label = 'odk_form'
-    #permission_classes = [IsAuthenticated]
+    renderer_classes = [
+        GenericJSONRenderer,
+    ]
+    object_label = "odk_form"
+    # permission_classes = [IsAuthenticated]
 
     def post(self, request, project_id):
         """
@@ -48,31 +52,40 @@ class ODKFormCreateView(APIView):
                 django_project = Projects.objects.get(pk=project_id)
             except Projects.DoesNotExist:
                 return Response(
-                    {'error': 'Project not found'},
-                    status=status.HTTP_404_NOT_FOUND
+                    {"error": "Project not found"}, status=status.HTTP_404_NOT_FOUND
                 )
 
             # Check et validate the file in the request
-            form_file = request.FILES.get('form')
+            form_file = request.FILES.get("form")
             if not form_file:
-                return Response({'error': 'Form file is required'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    {"error": "Form file is required"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
             # Get the file name and check extension
             filename = form_file.name
-            file_extension = filename.split('.')[-1].lower()
-            if file_extension not in ['xml', 'xlsx', 'xls']:
-                return Response({'error': 'Invalid file extension'}, status=status.HTTP_400_BAD_REQUEST)
+            file_extension = filename.split(".")[-1].lower()
+            if file_extension not in ["xml", "xlsx", "xls"]:
+                return Response(
+                    {"error": "Invalid file extension"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
             form_data = form_file.read()
-            form_id = request.query_params.get('form_id')
-            ignore_warnings = request.query_params.get('ignore_warnings', 'false') == 'true'
-            publish = request.query_params.get('publish', 'false') == 'true'
+            form_id = request.query_params.get("form_id")
+            ignore_warnings = (
+                request.query_params.get("ignore_warnings", "false") == "true"
+            )
+            publish = request.query_params.get("publish", "false") == "true"
 
             # Appel du service ODK
             with ODKCentralService(request.user, request=request) as odk_service:
                 try:
                     had_odk_project = django_project.odk_id is not None
-                    odk_project_id = odk_service.ensure_odk_project_exists(django_project)
+                    odk_project_id = odk_service.ensure_odk_project_exists(
+                        django_project
+                    )
                     if not had_odk_project:
                         created_new_odk_project = True
                     form = odk_service.create_form(
@@ -81,31 +94,41 @@ class ODKFormCreateView(APIView):
                         filename,
                         form_id=form_id,
                         ignore_warnings=ignore_warnings,
-                        publish=publish
+                        publish=publish,
                     )
-                    ODKCacheManager.invalidate_project_cache(request.user.id, odk_project_id)
-                    return Response({'form': form}, status=status.HTTP_201_CREATED)
+                    ODKCacheManager.invalidate_project_cache(
+                        request.user.id, odk_project_id
+                    )
+                    return Response({"form": form}, status=status.HTTP_201_CREATED)
                 except Exception as e:
                     if created_new_odk_project:
-                        self.rollback_project_creation(odk_service, odk_project_id, django_project)
+                        self.rollback_project_creation(
+                            odk_service, odk_project_id, django_project
+                        )
                     raise e
         except Exception as e:
             logger.error(f"Error creating form: {e}")
             return Response(
                 {
-                    'error': 'Unable to create form',
-                    'detail': str(e),
-                    'message': 'Form creation failed and all changes have been rolled back'
+                    "error": "Unable to create form",
+                    "detail": str(e),
+                    "message": "Form creation failed and all changes have been rolled back",
                 },
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR )
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
-
-    def rollback_project_creation(self, odk_service, odk_project_id, django_project) ->None:
+    def rollback_project_creation(
+        self, odk_service, odk_project_id, django_project
+    ) -> None:
         try:
-            logger.info(f"Rolling back ODK project creation for project {django_project.pkid}")
+            logger.info(
+                f"Rolling back ODK project creation for project {django_project.pkid}"
+            )
             odk_service.delete_project(odk_project_id)
             django_project.odk_id = None
             django_project.save()
-            logger.info(f"Successfully rolled back ODK project creation for project {django_project.pkid}")
+            logger.info(
+                f"Successfully rolled back ODK project creation for project {django_project.pkid}"
+            )
         except Exception as rollback_error:
             logger.error(f"Error rolling back ODK project creation: {rollback_error}")

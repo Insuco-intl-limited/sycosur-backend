@@ -1,13 +1,17 @@
-from typing import Dict, List
-from django.utils import timezone
 import logging
+from typing import Dict, List
+
+from django.utils import timezone
 
 from .baseService import BaseODKService
 from .permissionServices import ODKPermissionMixin
+
 logger = logging.getLogger(__name__)
+
 
 class ODKProjectService(BaseODKService, ODKPermissionMixin):
     """Service pour la gestion des projets ODK"""
+
     def __init__(self, django_user, request=None):
         super().__init__(django_user, request=request)
 
@@ -29,8 +33,7 @@ class ODKProjectService(BaseODKService, ODKPermissionMixin):
             }
 
             odk_project = self.create_project(
-                name=project_data["name"],
-                description=project_data["description"]
+                name=project_data["name"], description=project_data["description"]
             )
             logger.info(f"ODK project ID: {odk_project['id']}")
             # Update the Django project with the ODK project ID

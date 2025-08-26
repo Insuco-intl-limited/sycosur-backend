@@ -10,12 +10,13 @@ from django.utils import timezone
 
 import requests
 
-from core_apps.odk.models import ODKUserSessions, AuditLogs
+from core_apps.odk.models import AuditLogs, ODKUserSessions
 from core_apps.odk.utils import get_ssl_verify
 
 from .poolServices import ODKAccountPool
 
 logger = logging.getLogger(__name__)
+
 
 class BaseODKService:
     """Base service for interacting with the ODK Central API"""

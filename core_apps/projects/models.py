@@ -6,8 +6,11 @@ from core_apps.common.models import TimeStampedModel
 
 User = get_user_model()
 
+
 class Projects(TimeStampedModel):
-    odk_id = models.BigIntegerField(unique=True, verbose_name="ODK Project ID", null=True)
+    odk_id = models.BigIntegerField(
+        unique=True, verbose_name="ODK Project ID", null=True
+    )
     name = models.CharField(max_length=150, verbose_name="Project name", unique=True)
     description = models.TextField(null=True, verbose_name="Description")
     archived = models.BooleanField(default=False, verbose_name="Archived")
@@ -82,4 +85,3 @@ class ProjectPermissions(TimeStampedModel):
 
     def __str__(self) -> str:
         return f"{self.user.email} - {self.project.name} - {self.get_permission_level_display()}"
-

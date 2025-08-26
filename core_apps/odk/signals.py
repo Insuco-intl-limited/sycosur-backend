@@ -3,8 +3,8 @@ from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 from django.utils import timezone
 
+from ..projects.models import ProjectPermissions, Projects
 from .cache import ODKCacheManager
-from ..projects.models import Projects, ProjectPermissions
 
 User = get_user_model()
 

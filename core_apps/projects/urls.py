@@ -1,4 +1,5 @@
 from django.urls import path
+
 from core_apps.projects.views import CreateProjectView
 
 app_name = "projects"

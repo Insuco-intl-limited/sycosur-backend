@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 
-from core_apps.projects.models import Projects, ProjectPermissions
+from core_apps.projects.models import ProjectPermissions, Projects
 
 if TYPE_CHECKING:
     from django.contrib.auth import get_user_model
@@ -53,9 +53,7 @@ class ODKPermissionMixin:
 
             try:
                 # Si une permission explicite existe
-                ProjectPermissions.objects.get(
-                    user=self.django_user, project=project
-                )
+                ProjectPermissions.objects.get(user=self.django_user, project=project)
                 return True
             except ProjectPermissions.DoesNotExist:
 
