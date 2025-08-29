@@ -4,17 +4,15 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-from config.env import PROD_ENV_FILE
+from config.env import CUR_ENV_FILE
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent.parent
 
 APPS_DIR = BASE_DIR / "core_apps"
 
-# prod_env_file = path.join(BASE_DIR, ".envs", ".env.local")
-
-if path.isfile(PROD_ENV_FILE):
-    load_dotenv(PROD_ENV_FILE)
+if path.isfile(CUR_ENV_FILE):
+    load_dotenv(CUR_ENV_FILE)
 
 
 # Application definition
@@ -67,6 +65,7 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    # "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.locale.LocaleMiddleware",

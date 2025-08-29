@@ -71,6 +71,10 @@ startapp: ## Créer une nouvelle application dans core_apps (usage: make startap
 	@echo "   - Modifier le name en 'core_apps.$(APP_NAME)' dans 'core_apps/$(APP_NAME)/apps.py"
 
 
+.PHONY: check-deploy
+check-deploy: ## Vérifier les paramètres de déploiement
+	docker compose -f ../local.yml run --rm api python manage.py check --deploy
+
 .PHONY: clean
 clean: ## Nettoyer les fichiers temporaires et compilés
 	find . -type d -name "__pycache__" -exec rm -rf {} +

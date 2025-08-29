@@ -10,7 +10,7 @@ https://docs.djangoproject.com/en/5.2/howto/deployment/asgi/
 import os
 
 from django.core.asgi import get_asgi_application
-
+# TODO: change this to prod in production env
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.local")
 
 application = get_asgi_application()

@@ -1,9 +1,7 @@
 import xml.etree.ElementTree as xEt
 from io import BytesIO
-
 from celery import shared_task
 from pyxform.xls2xform import convert
-
 
 @shared_task
 def convert_excel_to_xform_task(file_content, file_name):

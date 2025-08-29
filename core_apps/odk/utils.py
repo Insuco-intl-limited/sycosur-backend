@@ -5,12 +5,12 @@ import requests
 from dotenv import load_dotenv
 from urllib3.exceptions import InsecureRequestWarning
 
-from config.env import PROD_ENV_FILE
+from config.env import CUR_ENV_FILE
 
 logger = logging.getLogger(__name__)
 
-if os.path.isfile(PROD_ENV_FILE):
-    load_dotenv(PROD_ENV_FILE)
+if os.path.isfile(CUR_ENV_FILE):
+    load_dotenv(CUR_ENV_FILE)
 
 
 def get_ssl_verify():
