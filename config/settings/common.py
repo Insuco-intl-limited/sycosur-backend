@@ -18,6 +18,7 @@ if path.isfile(CUR_ENV_FILE):
 # Application definition
 
 DJANGO_APPS = [
+    "whitenoise.runserver_nostatic",
     "config.settings.custom_app.CustomAdminInterfaceConfig",
     "colorfield",
     "django.contrib.admin",
@@ -36,11 +37,9 @@ THIRD_PARTY_APPS = [
     "drf_yasg",
     "djoser",
     "social_django",
-    # "rosetta",
-    # "taggit",
     "django_filters",
     "djcelery_email",
-    # "django_celery_beat",
+    "django_celery_beat",
 ]
 
 # Redis cache settings
@@ -65,7 +64,7 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    # "whitenoise.middleware.WhiteNoiseMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.locale.LocaleMiddleware",
