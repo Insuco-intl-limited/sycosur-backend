@@ -19,3 +19,4 @@ secrets.json
 /docs
 /credentials
 Makefile
+.todo
