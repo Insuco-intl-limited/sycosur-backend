@@ -18,3 +18,4 @@ secrets.json
 .idea/
 /docs
 /credentials
+Makefile
