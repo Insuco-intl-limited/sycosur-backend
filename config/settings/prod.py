@@ -12,13 +12,25 @@ if not SECRET_KEY:
 
 CSRF_TRUSTED_ORIGINS = ["https://api.insuco.net", "https://sycosur.insuco.net"]
 
-ALLOWED_HOSTS = ["api.insuco.net", "149.56.16.98"]
 
-# CORS settings for production
+ALLOWED_HOSTS = ["api.insuco.net", "149.56.16.98", "sycosur.insuco.net"]
+
+# CORS settings
 CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOWED_ORIGINS = [
     "https://sycosur.insuco.net","https://drive.google.com", "https://googleusercontent.com", "https://flower.insuco.net"
 ]
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_METHODS = ['DELETE', 'GET', 'OPTIONS', 'PATCH', 'POST', 'PUT']
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'authorization',
+    'content-type',
+    'origin',
+    'x-csrftoken',
+    'x-requested-with',
+]
+
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 

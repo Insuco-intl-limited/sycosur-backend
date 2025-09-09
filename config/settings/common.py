@@ -36,10 +36,11 @@ THIRD_PARTY_APPS = [
     "phonenumber_field",
     "drf_yasg",
     "djoser",
+    "corsheaders",
     "social_django",
     "django_filters",
     "djcelery_email",
-    "django_celery_beat",
+    #"django_celery_beat",
 ]
 
 # Redis cache settings
@@ -63,10 +64,10 @@ LOCAL_APPS = [
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
-    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -206,15 +207,15 @@ CELERY_TASK_TIME_LIMIT = 5 * 60
 
 CELERY_TASK_SOFT_TIME_LIMIT = 60
 
-CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
+# CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 
 CELERY_WORKER_SEND_TASK_EVENTS = True
 
-CELERY_BEAT_SCHEDULE = {
-    # "update-reputations-every-day": {
-    #     "task": "update_all_reputations",
-    # }
-}
+# CELERY_BEAT_SCHEDULE = {
+#     # "update-reputations-every-day": {
+#     #     "task": "update_all_reputations",
+#     # }
+# }
 
 COOKIE_NAME = "access"
 COOKIE_SAMESITE = "Lax"
