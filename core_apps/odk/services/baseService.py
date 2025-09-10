@@ -10,7 +10,8 @@ from django.utils import timezone
 
 import requests
 
-from core_apps.odk.models import AuditLogs, ODKUserSessions
+from core_apps.odk.models import ODKUserSessions
+from core_apps.common.utils import log_audit_action
 from core_apps.odk.utils import get_ssl_verify
 
 from .poolServices import ODKAccountPool
@@ -199,14 +200,6 @@ class BaseODKService:
 
         raise Exception(f"Maximum number of attempts exceeded for {method} {endpoint}")
 
-    def get_client_ip(self) -> str:
-        x_forwarded_for = self.request.META.get("HTTP_X_FORWARDED_FOR")
-        if x_forwarded_for:
-            ip = x_forwarded_for.split(",")[0]
-        else:
-            ip = self.request.META.get("REMOTE_ADDR")
-        return ip
-
     def _log_action(
         self,
         action: str,
@@ -215,16 +208,13 @@ class BaseODKService:
         details: dict,
         success: bool = True,
     ) -> None:
-        """Log an action in the audit log"""
-        try:
-            AuditLogs.objects.create(
-                user=self.django_user,
-                action=action,
-                resource_type=resource_type,
-                resource_id=resource_id,
-                details=details,
-                success=success,
-                ip_address=self.get_client_ip(),
-            )
-        except Exception as e:
-            logger.error(f"Error while writing to audit log: {e}")
+        """Log an action in the audit log using the shared utility"""
+        log_audit_action(
+            user=self.django_user,
+            action=action,
+            resource_type=resource_type,
+            resource_id=resource_id,
+            details=details,
+            success=success,
+            request=self.request,
+        )
