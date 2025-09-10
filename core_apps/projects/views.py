@@ -1,45 +1,82 @@
 import logging
-
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
+from django.utils import timezone
 from core_apps.common.renderers import GenericJSONRenderer
-
-from ..odk.cache import ODKCacheManager
-from .serializers import CreateProjectSerializer
+from .models import Projects
+from .serializers import ProjectSerializer
 
 logger = logging.getLogger(__name__)
 
 
-class CreateProjectView(APIView):
-    # renderer_classes = [GenericJSONRenderer]
-    # object_label = "odk_project"
+class ProjectListCreateView(generics.ListCreateAPIView):
+    """
+    View for listing and creating projects.
+    
+    GET: List all projects
+    POST: Create a new project
+    """
+    queryset = Projects.objects.filter(deleted=False, archived=False)
+    serializer_class = ProjectSerializer
+    renderer_classes = [GenericJSONRenderer]
+    @property
+    def object_label(self):
+        """
+        Return different object labels based on the HTTP method:
+        - 'projects' for GET (list) operations
+        - 'project' for POST (create) operations
+        """
+        if self.request.method == 'POST':
+            return "project"
+        return "projects"
 
-    def post(self, request):
-        """Create a new project in the app without creating it in ODK Central"""
+    def perform_create(self, serializer):
+        """Save the project """
+        project = serializer.save()
+
+
+
+class ProjectDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    View for retrieving, updating and deleting a project.
+    
+    GET: Retrieve a project
+    PUT/PATCH: Update a project
+    DELETE: Delete a project
+    """
+    queryset = Projects.objects.filter(deleted=False)
+    serializer_class = ProjectSerializer
+    renderer_classes = [GenericJSONRenderer]
+    lookup_field = "pkid"
+    object_label = "project"
+
+    def perform_update(self, serializer):
+        """Update the project """
+        project = serializer.save()
+
+    
+    def perform_destroy(self, instance):
+        """Soft delete the project by setting deleted=True"""
+        instance.deleted = True
+        instance.deleted_at = timezone.now()
+        instance.save()
+
+
+
+class ProjectArchiveView(APIView):
+    renderer_classes = [GenericJSONRenderer,]
+    object_label = "project"
+
+    def patch(self, request, pk, *args, **kwargs):
         try:
-            serializer = CreateProjectSerializer(
-                data=request.data, context={"request": request}
-            )
+            project = Projects.objects.get(pkid=pk, deleted=False)
+        except Projects.DoesNotExist:
+            return Response({"detail": "Project not found."}, status=status.HTTP_404_NOT_FOUND)
 
-            if not serializer.is_valid():
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        project.archived = True
+        project.archived_at = timezone.now()
+        project.save()
 
-            project = serializer.save()
-
-            # Project is created only in the Django database
-            # The ODK project will be created when a form is associated with this project
-
-            # Invalidate projects cache for this user
-            ODKCacheManager.invalidate_user_cache(request.user.id)
-
-            # Return the created project
-            return Response(status=status.HTTP_201_CREATED)
-
-        except Exception as e:
-            logger.error(f"Error creating project: {e}")
-            return Response(
-                {"error": "Unable to create project", "detail": str(e)},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
+        serializer = ProjectSerializer(project)
+        return Response(serializer.data, status=status.HTTP_200_OK)

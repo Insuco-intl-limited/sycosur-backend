@@ -1,12 +1,11 @@
 from django.urls import path
 
-from core_apps.projects.views import CreateProjectView
+from core_apps.projects.views import ProjectListCreateView, ProjectDetailView, ProjectArchiveView
 
 app_name = "projects"
 
 urlpatterns = [
-    # Projets Sycosur
-    path("", CreateProjectView.as_view(), name="add-project"),
-    # path("projects/<int:project_id>/", ODKProjectDetailView.as_view(), name="project-detail"),
-    # path("projects/<int:project_id>/sync/", ODKSyncProjectView.as_view(), name="project-sync"),
+    path("", ProjectListCreateView.as_view(), name="project-list-create"),
+    path("<int:pkid>/", ProjectDetailView.as_view(), name="project-detail"),
+    path("<int:pk>/archive/", ProjectArchiveView.as_view(), name="project-archive")
 ]
