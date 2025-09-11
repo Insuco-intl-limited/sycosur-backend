@@ -1,19 +1,35 @@
 from rest_framework import serializers
+
 from .models import ProjectPermissions, Projects
+
 
 class ProjectSerializer(serializers.ModelSerializer):
     created_by_name = serializers.SerializerMethodField()
-    
+
     class Meta:
         model = Projects
-        fields = ["id", "name", "description", "created_at", "updated_at", "created_by", "created_by_name"]
-        read_only_fields = ["id", "created_at", "updated_at", "created_by", "created_by_name"]
+        fields = [
+            "id",
+            "name",
+            "description",
+            "created_at",
+            "updated_at",
+            "created_by",
+            "created_by_name",
+        ]
+        read_only_fields = [
+            "id",
+            "created_at",
+            "updated_at",
+            "created_by",
+            "created_by_name",
+        ]
 
     def get_created_by_name(self, obj):
         if obj.created_by and obj.created_by.username is not None:
             return obj.created_by.username
         return None
-    
+
     def create(self, validated_data):
         validated_data["created_by"] = self.context["request"].user
         return super().create(validated_data)

@@ -11,7 +11,9 @@ class Projects(TimeStampedModel):
     odk_id = models.BigIntegerField(
         unique=True, verbose_name="ODK Project ID", null=True
     )
-    name = models.CharField(max_length=150, verbose_name="Project name", unique=True, null=False)
+    name = models.CharField(
+        max_length=150, verbose_name="Project name", unique=True, null=False
+    )
     description = models.TextField(null=True, verbose_name="Description")
     deleted = models.BooleanField(default=False, verbose_name="Deleted", null=True)
     deleted_at = models.DateTimeField(null=True, verbose_name="Deleted at")

@@ -1,5 +1,5 @@
-from typing import Optional, Any
 import logging
+from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +35,7 @@ def log_audit_action(
 
     try:
         # Local import to avoid potential circular imports at module load time
-        from core_apps.odk.models import AuditLogs
+        from core_apps.common.models import AuditLogs
 
         ip = ip_address or (get_client_ip(request) if request is not None else None)
         payload = {
@@ -49,7 +49,9 @@ def log_audit_action(
         }
         return AuditLogs.objects.create(**payload)
     except Exception as e:
-        logger.error(f"Failed to write audit log for action '{action}' on '{resource_type}': {e}")
+        logger.error(
+            f"Failed to write audit log for action '{action}' on '{resource_type}': {e}"
+        )
         if raise_on_error:
             raise
         return None

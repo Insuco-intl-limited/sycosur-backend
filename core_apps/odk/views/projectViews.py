@@ -9,9 +9,6 @@ from core_apps.odk.services import ODKCentralService
 
 from ..cache import ODKCacheManager
 
-# from ..serializers import ODKCreateProjectSerializer
-
-
 logger = logging.getLogger(__name__)
 
 
@@ -57,43 +54,3 @@ class ODKProjectListView(APIView):
                 {"error": "Impossible de récupérer les projets", "detail": str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
-
-
-# class ODKProjectCreateView(APIView):
-#     # renderer_classes = [GenericJSONRenderer]
-#     # object_label = "odk_project"
-#
-#     def post(self, request):
-#         """Create a new project in the app without creating it in ODK Central"""
-#         try:
-#             # Create project in Django database first
-#             serializer = ODKCreateProjectSerializer(
-#                 data=request.data,
-#                 context={'request': request}
-#             )
-#
-#             if not serializer.is_valid():
-#                 return Response(
-#                     serializer.errors,
-#                     status=status.HTTP_400_BAD_REQUEST
-#                 )
-#
-#             project = serializer.save()
-#
-#             # Project is created only in the Django database
-#             # The ODK project will be created when a form is associated with this project
-#
-#             # Invalidate projects cache for this user
-#             ODKCacheManager.invalidate_user_cache(request.user.id)
-#
-#             # Return the created project
-#             return Response(
-#                 status=status.HTTP_201_CREATED
-#             )
-#
-#         except Exception as e:
-#             logger.error(f"Error creating project: {e}")
-#             return Response(
-#                 {'error': 'Unable to create project', 'detail': str(e)},
-#                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
-#             )

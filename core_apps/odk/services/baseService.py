@@ -10,8 +10,8 @@ from django.utils import timezone
 
 import requests
 
-from core_apps.odk.models import ODKUserSessions
 from core_apps.common.utils import log_audit_action
+from core_apps.odk.models import ODKUserSessions
 from core_apps.odk.utils import get_ssl_verify
 
 from .poolServices import ODKAccountPool

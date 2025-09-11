@@ -40,7 +40,7 @@ THIRD_PARTY_APPS = [
     "social_django",
     "django_filters",
     "djcelery_email",
-    #"django_celery_beat",
+    # "django_celery_beat",
 ]
 
 # Redis cache settings

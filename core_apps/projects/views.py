@@ -1,16 +1,20 @@
 import logging
+
+from django.utils import timezone
+
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from django.utils import timezone
+
 from core_apps.common.renderers import GenericJSONRenderer
+from core_apps.common.utils import log_audit_action
+
 from .models import Projects
 from .serializers import ProjectSerializer
-from core_apps.common.utils import log_audit_action
 
 logger = logging.getLogger(__name__)
 
-#TODO: Apply filtering to list views for  deleted and archived projects, based on query parameters.
+
 class ProjectListCreateView(generics.ListCreateAPIView):
     """
     View for listing and creating projects.
@@ -27,6 +31,7 @@ class ProjectListCreateView(generics.ListCreateAPIView):
 
     def get_queryset(self):
         """Return projects with default exclusions, optionally including deleted/archived."""
+
         def _truthy(val: str) -> bool:
             if val is None:
                 return False
@@ -49,15 +54,19 @@ class ProjectListCreateView(generics.ListCreateAPIView):
         - 'projects' for GET (list) operations
         - 'project' for POST (create) operations
         """
-        if self.request.method == 'POST':
+        if self.request.method == "POST":
             return "project"
         return "projects"
 
-    def perform_create(self, serializer):
-        """Save the project """
-        project = serializer.save()
-        logger.info("Project created with ID: %s", project.id)
+    # def create(self, request, *args, **kwargs):
+    #     serializer = self.get_serializer(data=request.data)
+    #     serializer.is_valid(raise_exception=True)
+    #     self.perform_create(serializer)
+    #     return Response({"detail":"Project created"}, status=status.HTTP_201_CREATED)
 
+    def perform_create(self, serializer):
+        """Save the project"""
+        project = serializer.save()
 
 
 class ProjectDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -67,17 +76,31 @@ class ProjectDetailView(generics.RetrieveUpdateDestroyAPIView):
     PUT/PATCH: Update a project
     DELETE: Delete a project
     """
+
     queryset = Projects.objects.filter(deleted=False)
     serializer_class = ProjectSerializer
-    renderer_classes = [GenericJSONRenderer]
     lookup_field = "pkid"
-    object_label = "project"
+
+    def get_renderers(self):
+        if self.request.method in ["PUT", "PATCH", "GET"]:
+            return [GenericJSONRenderer()]
+        return super().get_renderers()
+
+    @property
+    def object_label(self):
+        if self.request.method in ["PUT", "PATCH", "GET"]:
+            return "project"
+        raise AttributeError("object_label is not defined for this HTTP method")
 
     def perform_update(self, serializer):
-        """Update the project """
+        """Update the project"""
         project = serializer.save()
 
-    
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response({"detail": "Project deleted"}, status=status.HTTP_200_OK)
+
     def perform_destroy(self, instance):
         """Soft delete the project by setting deleted=True"""
         instance.deleted = True
@@ -86,28 +109,31 @@ class ProjectDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 
 class ProjectArchiveView(APIView):
-    renderer_classes = [GenericJSONRenderer,]
-    object_label = "project"
 
     def patch(self, request, pk, *args, **kwargs):
         try:
             project = Projects.objects.get(pkid=pk, deleted=False)
         except Projects.DoesNotExist:
-            return Response({"detail": "Project not found."}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"detail": "Project not found."}, status=status.HTTP_404_NOT_FOUND
+            )
 
         project.archived = True
         project.archived_at = timezone.now()
         project.save()
 
-        serializer = ProjectSerializer(project)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response({"detail": "Project Archived"}, status=status.HTTP_200_OK)
+
 
 class ProjectUnarchiveView(APIView):
     def patch(self, request, pk, *args, **kwargs):
         try:
             project = Projects.objects.get(pkid=pk, deleted=False, archived=True)
         except Projects.DoesNotExist:
-            return Response({"detail": "Project not found in archived projects."}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"detail": "Project not found in archived projects."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
         project.archived = False
         project.archived_at = None
@@ -125,12 +151,16 @@ class ProjectUnarchiveView(APIView):
 
         return Response({"detail": "Project Unarchived"}, status=status.HTTP_200_OK)
 
+
 class ProjectRestoreView(APIView):
     def patch(self, request, pk, *args, **kwargs):
         try:
             project = Projects.objects.get(pkid=pk, deleted=True)
         except Projects.DoesNotExist:
-            return Response({"detail": "Project not found in deleted projects."}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"detail": "Project not found in deleted projects."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
         project.deleted = False
         project.deleted_at = None
