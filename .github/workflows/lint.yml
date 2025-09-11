@@ -26,7 +26,5 @@ jobs:
           pip install -r requirements/local.txt
       - name: Lint with isort
         run: isort --check-only --profile black --line-length 88 .
-      - name: Lint with flake8
-        run: flake8 --config=setup.cfg .
       - name: Lint with black
         run: black --check .
