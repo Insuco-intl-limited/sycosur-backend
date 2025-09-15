@@ -31,8 +31,55 @@ class Migration(migrations.Migration):
                 "verbose_name_plural": "Sycosur Audit Logs",
             },
         ),
-        migrations.AlterModelTable(
-            name="auditlogs",
-            table="audit_logs",
+        # Make table rename idempotent: only rename if destination doesn't already exist
+        migrations.SeparateDatabaseAndState(
+            database_operations=[
+                migrations.RunSQL(
+                    sql=(
+                        """
+                        DO $$
+                        BEGIN
+                            IF NOT EXISTS (
+                                SELECT 1 FROM information_schema.tables
+                                WHERE table_schema = 'public' AND table_name = 'audit_logs'
+                            ) THEN
+                                IF EXISTS (
+                                    SELECT 1 FROM information_schema.tables
+                                    WHERE table_schema = 'public' AND table_name = 'odk_audit_logs'
+                                ) THEN
+                                    ALTER TABLE public.odk_audit_logs RENAME TO audit_logs;
+                                END IF;
+                            END IF;
+                        END
+                        $$;
+                        """
+                    ),
+                    reverse_sql=(
+                        """
+                        DO $$
+                        BEGIN
+                            IF NOT EXISTS (
+                                SELECT 1 FROM information_schema.tables
+                                WHERE table_schema = 'public' AND table_name = 'odk_audit_logs'
+                            ) THEN
+                                IF EXISTS (
+                                    SELECT 1 FROM information_schema.tables
+                                    WHERE table_schema = 'public' AND table_name = 'audit_logs'
+                                ) THEN
+                                    ALTER TABLE public.audit_logs RENAME TO odk_audit_logs;
+                                END IF;
+                            END IF;
+                        END
+                        $$;
+                        """
+                    ),
+                )
+            ],
+            state_operations=[
+                migrations.AlterModelTable(
+                    name="auditlogs",
+                    table="audit_logs",
+                )
+            ],
         ),
     ]

@@ -18,7 +18,7 @@ if path.isfile(CUR_ENV_FILE):
 # Application definition
 
 DJANGO_APPS = [
-    "whitenoise.runserver_nostatic",
+    #"whitenoise.runserver_nostatic",
     "config.settings.custom_app.CustomAdminInterfaceConfig",
     "colorfield",
     "django.contrib.admin",
@@ -66,7 +66,7 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",
+    # "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
