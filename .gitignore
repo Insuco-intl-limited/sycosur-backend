@@ -18,6 +18,8 @@ secrets.json
 config/settings/local.py
 .idea/
 /docs
+
 /credentials
 Makefile
 .todo
+odk-forms.md

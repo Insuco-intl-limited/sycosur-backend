@@ -21,8 +21,10 @@ class ODKProjectService(BaseODKService, ODKPermissionMixin):
         If the Django project doesn't have an ODK project yet, creates one.
         Returns the ODK project ID.
         """
+        logger.info("Ensuring ODK project exists for Django project %s", django_project.pkid)
         # If the project already has an ODK ID, return it
         if django_project.odk_id is not None:
+            logger.info("Project already has ODK ID: %s", django_project.odk_id)
             return django_project.odk_id
 
         # Create a new project in ODK Central
@@ -31,11 +33,11 @@ class ODKProjectService(BaseODKService, ODKPermissionMixin):
                 "name": django_project.name,
                 "description": django_project.description or "",
             }
-
+            logger.info("Creating ODK project with data: %s", project_data)
             odk_project = self.create_project(
                 name=project_data["name"], description=project_data["description"]
             )
-            logger.info(f"ODK project ID: {odk_project['id']}")
+            logger.info("ODK project ID: %s", odk_project['id'])
             # Update the Django project with the ODK project ID
             django_project.odk_id = odk_project["id"]
             django_project.last_sync = timezone.now()
@@ -44,10 +46,11 @@ class ODKProjectService(BaseODKService, ODKPermissionMixin):
             self._log_action(
                 "link_django_project_to_odk",
                 "project",
-                str(odk_project["id"]),
+                str(django_project.odk_id),
                 {
                     "django_project_id": django_project.pkid,
                     "odk_account": self.current_account["id"],
+                    "odk_project_id": django_project.odk_id
                 },
                 success=True,
             )
@@ -74,15 +77,6 @@ class ODKProjectService(BaseODKService, ODKPermissionMixin):
         """Récupère tous les projets depuis ODK Central"""
         try:
             projects = self._make_request("GET", "projects")
-
-            self._log_action(
-                "list_projects",
-                "project",
-                "all projects",
-                {"count": len(projects), "odk_account": self.current_account["id"]},
-                success=True,
-            )
-
             return projects
         except Exception as e:
             self._log_action(
@@ -111,18 +105,6 @@ class ODKProjectService(BaseODKService, ODKPermissionMixin):
                 if self._user_can_access_project_id(project["id"]):
                     accessible_projects.append(project)
 
-            self._log_action(
-                "list_accessible_projects",
-                "project",
-                f"{self.django_user.first_name}' projects",
-                {
-                    "total_projects": len(all_projects),
-                    "accessible_count": len(accessible_projects),
-                    "odk_account": self.current_account["id"],
-                },
-                success=True,
-            )
-
             return accessible_projects
 
         except Exception as e:
@@ -145,18 +127,9 @@ class ODKProjectService(BaseODKService, ODKPermissionMixin):
         try:
             if not self._user_can_access_project_id(project_id):
                 raise PermissionError(
-                    f"L'utilisateur {self.django_user.get_full_name()} n'a pas accès au projet {project_id}"
+                    f"L'utilisateur {self.django_user.username} n'a pas accès au projet {project_id}"
                 )
-
             project = self._make_request("GET", f"projects/{project_id}")
-
-            self._log_action(
-                "get_project",
-                "project",
-                str(project_id),
-                {"odk_account": self.current_account["id"]},
-                success=True,
-            )
 
             return project
         except Exception as e:
@@ -179,7 +152,7 @@ class ODKProjectService(BaseODKService, ODKPermissionMixin):
         try:
             if not self._user_can_access_project_id(project_id):
                 raise PermissionError(
-                    f"User {self.django_user.get_full_name()} does not have permission to delete project {project_id}"
+                    f"User {self.django_user.username} does not have permission to delete project {project_id}"
                 )
 
             self._make_request("DELETE", f"projects/{project_id}")
@@ -188,7 +161,7 @@ class ODKProjectService(BaseODKService, ODKPermissionMixin):
                 "delete_project",
                 "project",
                 str(project_id),
-                {"odk_account": self.current_account["id"]},
+                {"odk_account": self.current_account["id"], "deleted_at": timezone.now().isoformat()},
                 success=True,
             )
         except Exception as e:
@@ -211,24 +184,20 @@ class ODKProjectService(BaseODKService, ODKPermissionMixin):
         try:
             if not self._user_can_create_project():
                 raise PermissionError(
-                    f"User {self.django_user.get_full_name()} does not have permission to create a project"
+                    f"User {self.django_user.username} does not have permission to create a project"
                 )
-
             project_data = {
                 "name": name,
                 "description": description,
             }
-
             project = self._make_request("POST", "projects", json=project_data)
-
             self._log_action(
                 "create_project",
                 "project",
-                str(project.id),
+                str(project["id"]),
                 {"name": name, "odk_account": self.current_account["id"]},
                 success=True,
             )
-
             return project
         except Exception as e:
             self._log_action(

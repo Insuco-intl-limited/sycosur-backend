@@ -15,7 +15,7 @@ class ODKSubmissionService(BaseODKService, ODKPermissionMixin):
         try:
             if not self._user_can_access_project_id(project_id):
                 raise PermissionError(
-                    f"L'utilisateur {self.django_user.get_full_name()} n'a pas accès au projet {project_id}"
+                    f"L'utilisateur {self.django_user.username} n'a pas accès au projet {project_id}"
                 )
 
             submissions = self._make_request(

@@ -17,7 +17,7 @@ class ODKFormCreateView(APIView):
     renderer_classes = [
         GenericJSONRenderer,
     ]
-    object_label = "odk_form"
+    object_label = "project_form"
     # permission_classes = [IsAuthenticated]
 
     def post(self, request, project_id):
@@ -26,20 +26,6 @@ class ODKFormCreateView(APIView):
         existence of the project in the database, validating the uploaded form file, and interacting with the ODK Central
         service to create the form and associate it with a corresponding ODK project. If necessary, the operation rolls back
         changes in case of failures.
-
-        Raises:
-            HTTP_404_NOT_FOUND: Raised when the specified project is not found in the database.
-            HTTP_400_BAD_REQUEST: Raised when the form file is missing or its extension is invalid.
-            HTTP_500_INTERNAL_SERVER_ERROR: Raised when an unexpected error occurs during the operation.
-
-        Args:
-            request: The HTTP request containing the form file and additional parameters.
-            project_id: The ID of the project associated with the form, identified as an integer.
-
-        Returns:
-            Response: An HTTP response indicating the result of the form creation operation. Returns a response with status
-            HTTP_201_CREATED including the created form data if successful. In case of errors, returns appropriate error
-            codes and messages.
         """
         created_new_odk_project = False
         odk_project_id = None
@@ -47,7 +33,7 @@ class ODKFormCreateView(APIView):
         try:
             # Check if the project exists in django db
             try:
-                django_project = Projects.objects.get(pk=project_id)
+                django_project = Projects.objects.get(pkid=project_id)
             except Projects.DoesNotExist:
                 return Response(
                     {"error": "Project not found"}, status=status.HTTP_404_NOT_FOUND
@@ -80,10 +66,18 @@ class ODKFormCreateView(APIView):
             # Appel du service ODK
             with ODKCentralService(request.user, request=request) as odk_service:
                 try:
+                    # Check if django_project is a string before accessing odk_id attribute
+                    if isinstance(django_project, str):
+                        return Response(
+                            {"error": "Invalid project format"},
+                            status=status.HTTP_400_BAD_REQUEST,
+                        )
                     had_odk_project = django_project.odk_id is not None
+
                     odk_project_id = odk_service.ensure_odk_project_exists(
                         django_project
                     )
+                    logger.info("odk_project_id: %s", odk_project_id)
                     if not had_odk_project:
                         created_new_odk_project = True
                     form = odk_service.create_form(
@@ -130,3 +124,41 @@ class ODKFormCreateView(APIView):
             )
         except Exception as rollback_error:
             logger.error(f"Error rolling back ODK project creation: {rollback_error}")
+
+
+class ODKProjectFormsListView(APIView):
+    renderer_classes = [
+        GenericJSONRenderer,
+    ]
+    object_label = "project_forms"
+    # permission_classes = [IsAuthenticated]
+
+    def get(self, request, project_id):
+        """
+        Handles the retrieval of all ODK forms associated with a specific project. This includes checking the existence
+        of the project in the database and interacting with the ODK Central service to fetch the list of forms.
+        """
+        try:
+            try:
+                django_project = Projects.objects.get(pkid=project_id)
+            except Projects.DoesNotExist:
+                return Response(
+                    {"error": "Project not found"}, status=status.HTTP_404_NOT_FOUND
+                )
+
+            # Appel du service ODK
+            with ODKCentralService(request.user, request=request) as odk_service:
+                try:
+                    forms = odk_service.get_project_forms(django_project.odk_id)
+                    return Response({"forms": forms}, status=status.HTTP_200_OK)
+                except Exception as e:
+                    raise e
+        except Exception as e:
+            logger.error(f"Error listing forms: {e}")
+            return Response(
+                {
+                    "error": "Unable to list forms",
+                    "detail": str(e),
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )

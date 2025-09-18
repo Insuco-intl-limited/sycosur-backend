@@ -18,7 +18,7 @@ class ODKFormService(BaseODKService, ODKPermissionMixin):
         try:
             if not self._user_can_access_project_id(project_id):
                 raise PermissionError(
-                    f"L'utilisateur {self.django_user.get_full_name()} n'a pas accès au projet {project_id}"
+                    f"L'utilisateur {self.django_user.username} n'a pas accès au projet {project_id}"
                 )
 
             forms_data = self._make_request("GET", f"projects/{project_id}/forms")
@@ -53,7 +53,7 @@ class ODKFormService(BaseODKService, ODKPermissionMixin):
         try:
             if not self._user_can_access_project_id(project_id):
                 raise PermissionError(
-                    f"L'utilisateur {self.django_user.get_full_name()} n'a pas accès au projet {project_id}"
+                    f"L'utilisateur {self.django_user.username} n'a pas accès au projet {project_id}"
                 )
 
             form_data = self._make_request(
@@ -98,7 +98,7 @@ class ODKFormService(BaseODKService, ODKPermissionMixin):
         try:
             if not self._user_can_access_project_id(project_id):
                 raise PermissionError(
-                    f" The user {self.django_user.get_full_name()} has not right on project id: {project_id}"
+                    f" The user {self.django_user.username} has not right on project id: {project_id}"
                 )
 
             # Déterminer le Content-Type selon l’extension
@@ -124,10 +124,11 @@ class ODKFormService(BaseODKService, ODKPermissionMixin):
             # Envoi du fichier en tant que corps brut de la requête
             form = self._make_request(
                 "POST",
-                f"projects/{project_id}/forms",
+                f"projects/{project_id}/forms/",
                 data=form_data,
                 headers=headers,
                 params=params,
+
             )
             self._log_action(
                 "create_form",
