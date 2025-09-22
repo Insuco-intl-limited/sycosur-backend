@@ -1,6 +1,14 @@
 from django.urls import path
 
-from core_apps.odk.views import ODKFormCreateView, ODKProjectListView, ODKProjectFormsListView, AppUserCreateView, AppUserListView
+from core_apps.odk.views import (
+    ODKFormCreateView, 
+    ODKProjectListView, 
+    ODKProjectFormsListView, 
+    AppUserCreateView, 
+    AppUserListView,
+    ODKFormDetailView,
+    ODKFormDeleteView
+)
 
 app_name = "odk"
 
@@ -11,6 +19,8 @@ urlpatterns = [
     # # Forms
     path("projects/<int:project_id>/forms/", ODKFormCreateView.as_view(), name="add-form"),
     path("projects/<int:project_id>/forms", ODKProjectFormsListView.as_view(), name="project-forms-list"),
+    path("projects/<int:project_id>/forms/<str:form_id>/", ODKFormDetailView.as_view(), name="form-detail"),
+    path("projects/<int:project_id>/forms/<str:form_id>/delete/", ODKFormDeleteView.as_view(), name="form-delete"),
     
     # App Users
     path("projects/<int:project_id>/app-users/", AppUserCreateView.as_view(), name="create-app-user"),

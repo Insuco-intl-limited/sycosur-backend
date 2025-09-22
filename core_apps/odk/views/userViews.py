@@ -29,13 +29,13 @@ class AppUserListView(APIView):
                 django_project = Projects.objects.get(pkid=project_id)
             except Projects.DoesNotExist:
                 return Response(
-                    {"detail": "Project not found"}, status=status.HTTP_404_NOT_FOUND
+                    {"error": "Project not found"}, status=status.HTTP_404_NOT_FOUND
                 )
 
             # Check if odk_id exists for the project
             if not django_project.odk_id:
                 return Response(
-                    {"detail": "Project is not associated with ODK"},
+                    {"error": "Project is not associated with ODK"},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
@@ -77,13 +77,13 @@ class AppUserCreateView(APIView):
                 django_project = Projects.objects.get(pkid=project_id)
             except Projects.DoesNotExist:
                 return Response(
-                    {"detail": "Project not found"}, status=status.HTTP_404_NOT_FOUND
+                    {"error": "Project not found"}, status=status.HTTP_404_NOT_FOUND
                 )
 
             # Check if odk_id exists for the project
             if not django_project.odk_id:
                 return Response(
-                    {"detail": "Project is not associated with ODK"},
+                    {"error": "Project is not associated with ODK"},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
@@ -91,7 +91,7 @@ class AppUserCreateView(APIView):
             display_name = request.data.get("display_name")
             if not display_name:
                 return Response(
-                    {"detail": "Display name is required"},
+                    {"error": "Display name is required"},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             # Create app user using the service

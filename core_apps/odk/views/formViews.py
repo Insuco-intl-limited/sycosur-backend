@@ -1,5 +1,4 @@
 import logging
-
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -7,9 +6,7 @@ from rest_framework.views import APIView
 from core_apps.common.renderers import GenericJSONRenderer
 from core_apps.odk.services import ODKCentralService
 from core_apps.projects.models import Projects
-
 from ..cache import ODKCacheManager
-
 logger = logging.getLogger(__name__)
 
 
@@ -29,7 +26,6 @@ class ODKFormCreateView(APIView):
         """
         created_new_odk_project = False
         odk_project_id = None
-
         try:
             # Check if the project exists in django db
             try:
@@ -38,7 +34,6 @@ class ODKFormCreateView(APIView):
                 return Response(
                     {"error": "Project not found"}, status=status.HTTP_404_NOT_FOUND
                 )
-
             # Check et validate the file in the request
             form_file = request.FILES.get("form")
             if not form_file:
@@ -46,7 +41,6 @@ class ODKFormCreateView(APIView):
                     {"error": "Form file is required"},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-
             # Get the file name and check extension
             filename = form_file.name
             file_extension = filename.split(".")[-1].lower()
@@ -145,11 +139,12 @@ class ODKProjectFormsListView(APIView):
                 return Response(
                     {"error": "Project not found"}, status=status.HTTP_404_NOT_FOUND
                 )
-
             # Appel du service ODK
             with ODKCentralService(request.user, request=request) as odk_service:
                 try:
                     forms = odk_service.get_project_forms(django_project.odk_id)
+                    for form in forms:
+                        form['publish'] = form.get('publishedAt') is not None
                     return Response({"forms": forms}, status=status.HTTP_200_OK)
                 except Exception as e:
                     raise e
@@ -158,6 +153,92 @@ class ODKProjectFormsListView(APIView):
             return Response(
                 {
                     "error": "Unable to list forms",
+                    "detail": str(e),
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+
+class ODKFormDetailView(APIView):
+    renderer_classes = [
+        GenericJSONRenderer,
+    ]
+    object_label = "form"
+
+
+    def get(self, request, project_id, form_id):
+        """
+        Handles the retrieval of details for a specific ODK form. This includes checking the existence
+        of the project in the database and interacting with the ODK Central service to fetch the form details.
+        """
+        try:
+            try:
+                django_project = Projects.objects.get(pkid=project_id)
+            except Projects.DoesNotExist:
+                return Response(
+                    {"error": "Project not found"}, status=status.HTTP_404_NOT_FOUND
+                )
+
+            # Appel du service ODK
+            with ODKCentralService(request.user, request=request) as odk_service:
+                try:
+                    form_details = odk_service.get_form(django_project.odk_id, form_id)
+                    return Response(form_details, status=status.HTTP_200_OK)
+                except Exception as e:
+                    if "404" in str(e):
+                        return Response(
+                            {"error": "Form not found"}, 
+                            status=status.HTTP_404_NOT_FOUND
+                        )
+                    raise e
+        except Exception as e:
+            logger.error(f"Error retrieving form details: {e}")
+            return Response(
+                {
+                    "error": "Unable to retrieve form details",
+                    "detail": str(e),
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+
+class ODKFormDeleteView(APIView):
+
+    def delete(self, request, project_id, form_id):
+        """
+        Handles the deletion of a specific ODK form. This includes checking the existence
+        of the project in the database and interacting with the ODK Central service to delete the form.
+        The form is moved to trash and can be restored within 30 days.
+        """
+        try:
+            try:
+                django_project = Projects.objects.get(pkid=project_id)
+            except Projects.DoesNotExist:
+                return Response(
+                    {"error": "Project not found"}, status=status.HTTP_404_NOT_FOUND
+                )
+
+            # Appel du service ODK
+            with ODKCentralService(request.user, request=request) as odk_service:
+                try:
+                    result = odk_service.delete_form(django_project.odk_id, form_id)
+                    # Invalidate cache after form deletion
+                    ODKCacheManager.invalidate_project_cache(
+                        request.user.id, django_project.odk_id
+                    )
+                    return Response(status=status.HTTP_204_NO_CONTENT)
+                except Exception as e:
+                    if "404" in str(e):
+                        return Response(
+                            {"error": "Form not found"}, 
+                            status=status.HTTP_404_NOT_FOUND
+                        )
+                    raise e
+        except Exception as e:
+            logger.error(f"Error deleting form: {e}")
+            return Response(
+                {
+                    "error": "Unable to delete form",
                     "detail": str(e),
                 },
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,

@@ -1,4 +1,5 @@
 import logging
+from datetime import timezone
 from typing import Dict, List
 
 from .baseService import BaseODKService
@@ -22,15 +23,6 @@ class ODKFormService(BaseODKService, ODKPermissionMixin):
                 )
 
             forms_data = self._make_request("GET", f"projects/{project_id}/forms")
-
-            self._log_action(
-                "list_forms",
-                "form",
-                str(project_id),
-                {"count": len(forms_data), "odk_account": self.current_account["id"]},
-                success=True,
-            )
-
             return forms_data
 
         except Exception as e:
@@ -59,15 +51,6 @@ class ODKFormService(BaseODKService, ODKPermissionMixin):
             form_data = self._make_request(
                 "GET", f"projects/{project_id}/forms/{form_id}"
             )
-
-            self._log_action(
-                "get_form",
-                "form",
-                f"{project_id}/{form_id}",
-                {"odk_account": self.current_account["id"]},
-                success=True,
-            )
-
             return form_data
 
         except Exception as e:
@@ -100,7 +83,6 @@ class ODKFormService(BaseODKService, ODKPermissionMixin):
                 raise PermissionError(
                     f" The user {self.django_user.username} has not right on project id: {project_id}"
                 )
-
             # Déterminer le Content-Type selon l’extension
             if filename.endswith(".xlsx"):
                 content_type = (
@@ -143,6 +125,41 @@ class ODKFormService(BaseODKService, ODKPermissionMixin):
                 "create_form",
                 "form",
                 f"{project_id}",
+                {
+                    "error": str(e),
+                    "odk_account": (
+                        self.current_account["id"] if self.current_account else None
+                    ),
+                },
+                success=False,
+            )
+            raise
+
+    def delete_form(self, project_id: int, form_id: str) -> Dict:
+        """Supprime un formulaire spécifique (mise en corbeille)"""
+        try:
+            if not self._user_can_access_project_id(project_id):
+                raise PermissionError(
+                    f"L'utilisateur {self.django_user.username} n'a pas accès au projet {project_id}"
+                )
+
+            result = self._make_request(
+                "DELETE", f"projects/{project_id}/forms/{form_id}"
+            )
+            self._log_action(
+                "delete_form",
+                "form",
+                f"project:{project_id}/form:{form_id}",
+                {"odk_account": self.current_account["id"]},
+                success=True,
+            )
+            return result
+
+        except Exception as e:
+            self._log_action(
+                "delete_form",
+                "form",
+                f"project:{project_id}/form:{form_id}",
                 {
                     "error": str(e),
                     "odk_account": (

@@ -1,5 +1,5 @@
 from uuid import UUID
-
+from django.conf import settings
 from django.core.files.base import ContentFile
 from django.core.files.storage import FileSystemStorage
 
@@ -13,7 +13,7 @@ def upload_avatar_to_media(
     profile_id: UUID, image_content: bytes, original_filename: str
 ) -> None:
     profile = Profile.objects.get(id=profile_id)
-    storage = FileSystemStorage()
+    storage = FileSystemStorage(location=settings.MEDIA_ROOT)
 
     # Utiliser la fonction avatar_upload_path pour générer le bon chemin
     filename = avatar_upload_path(profile, original_filename)
