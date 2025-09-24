@@ -13,14 +13,16 @@ class ODKAppUserService(BaseODKService, ODKPermissionMixin):
     def __init__(self, django_user, request=None):
         super().__init__(django_user, request=request)
 
-    def get_project_app_users(self, project_id: int) :
+    def get_project_app_users(self, project_id: int):
         """Récupère tous les utilisateurs d'application d'un projet spécifique"""
         try:
             if not self._user_can_access_project_id(project_id):
                 raise PermissionError(
                     f"L'utilisateur {self.django_user.username} n'a pas accès au projet {project_id}"
                 )
-            app_users_data = self._make_request("GET", f"projects/{project_id}/app-users")
+            app_users_data = self._make_request(
+                "GET", f"projects/{project_id}/app-users"
+            )
 
             return app_users_data
         except Exception as e:
@@ -85,16 +87,17 @@ class ODKAppUserService(BaseODKService, ODKPermissionMixin):
 
             payload = {"displayName": display_name}
             app_user = self._make_request(
-                "POST",
-                f"projects/{project_id}/app-users",
-                json=payload
+                "POST", f"projects/{project_id}/app-users", json=payload
             )
 
             self._log_action(
                 "create_app_user",
                 "app_user",
                 f"{project_id}",
-                {"display_name": display_name, "odk_account": self.current_account["id"]},
+                {
+                    "display_name": display_name,
+                    "odk_account": self.current_account["id"],
+                },
                 success=True,
             )
             return app_user
@@ -162,11 +165,11 @@ class ODKAppUserService(BaseODKService, ODKPermissionMixin):
 
             # Récupérer les informations de l'app user pour obtenir son token
             app_user = self.get_app_user(project_id, app_user_id)
-            
+
             if not app_user.get("token"):
                 # L'utilisateur a déjà été révoqué
                 return True
-                
+
             # Révoquer la session en supprimant le token
             self._make_request("DELETE", f"sessions/{app_user['token']}")
 

@@ -14,6 +14,7 @@ from core_apps.common.utils import log_audit_action
 from core_apps.odk.models import ODKUserSessions
 from core_apps.odk.utils import get_ssl_verify
 
+from .exceptions import ODKValidationError
 from .poolServices import ODKAccountPool
 
 logger = logging.getLogger(__name__)
@@ -111,6 +112,9 @@ class BaseODKService:
         max_retries = getattr(settings, "ODK_MAX_RETRIES", 5)
         timeout = getattr(settings, "ODK_REQUEST_TIMEOUT", 120)
 
+        # Extract return_json parameter (default to True)
+        return_json = kwargs.pop("return_json", True)
+
         # Add default timeout if not specified
         if "timeout" not in kwargs:
             kwargs["timeout"] = timeout
@@ -134,6 +138,10 @@ class BaseODKService:
                 # For requests that don't return JSON
                 if response.status_code == 204 or not response.content:
                     return {"success": True, "status_code": response.status_code}
+
+                # Return raw text if return_json=False (e.g., for XML responses)
+                if not return_json:
+                    return response.text
 
                 return response.json()
 
@@ -167,7 +175,19 @@ class BaseODKService:
                     self.current_session_data["token"] = None
                     if attempt < max_retries - 1:
                         continue
+
                 status_code = e.response.status_code
+
+                # Essayer de récupérer le détail de l'erreur depuis la réponse
+                error_detail = None
+                try:
+                    if e.response.content:
+                        error_response = e.response.json()
+                        error_detail = error_response
+                except (json.JSONDecodeError, ValueError):
+                    # Si ce n'est pas du JSON, utiliser le texte brut
+                    error_detail = e.response.text if e.response.text else str(e)
+
                 logger.error(
                     f"HTTP error {status_code} during request to ODK Central: {e}"
                 )
@@ -185,7 +205,9 @@ class BaseODKService:
                     raise Exception(
                         f"ODK Central server error ({status_code}). Please try again later."
                     )
-                raise
+
+                # Créer une exception personnalisée avec les détails
+                raise ODKValidationError(str(e), error_detail=error_detail)
             except json.JSONDecodeError as e:
                 logger.error(f"JSON decoding error: {e}")
                 raise Exception("ODK Central server returned an invalid response.")

@@ -1,12 +1,14 @@
+from .appUserServices import ODKAppUserService
 from .baseService import BaseODKService
 from .formServices import ODKFormService
 from .permissionServices import ODKPermissionMixin
 from .projectServices import ODKProjectService
 from .submissionServices import ODKSubmissionService
-from .appUserServices import ODKAppUserService
 
 
-class ODKCentralService(ODKProjectService, ODKFormService, ODKSubmissionService, ODKAppUserService):
+class ODKCentralService(
+    ODKProjectService, ODKFormService, ODKSubmissionService, ODKAppUserService
+):
 
     pass
 

@@ -21,7 +21,9 @@ class ODKProjectService(BaseODKService, ODKPermissionMixin):
         If the Django project doesn't have an ODK project yet, creates one.
         Returns the ODK project ID.
         """
-        logger.info("Ensuring ODK project exists for Django project %s", django_project.pkid)
+        logger.info(
+            "Ensuring ODK project exists for Django project %s", django_project.pkid
+        )
         # If the project already has an ODK ID, return it
         if django_project.odk_id is not None:
             logger.info("Project already has ODK ID: %s", django_project.odk_id)
@@ -37,7 +39,7 @@ class ODKProjectService(BaseODKService, ODKPermissionMixin):
             odk_project = self.create_project(
                 name=project_data["name"], description=project_data["description"]
             )
-            logger.info("ODK project ID: %s", odk_project['id'])
+            logger.info("ODK project ID: %s", odk_project["id"])
             # Update the Django project with the ODK project ID
             django_project.odk_id = odk_project["id"]
             django_project.last_sync = timezone.now()
@@ -50,7 +52,7 @@ class ODKProjectService(BaseODKService, ODKPermissionMixin):
                 {
                     "django_project_id": django_project.pkid,
                     "odk_account": self.current_account["id"],
-                    "odk_project_id": django_project.odk_id
+                    "odk_project_id": django_project.odk_id,
                 },
                 success=True,
             )
@@ -161,7 +163,10 @@ class ODKProjectService(BaseODKService, ODKPermissionMixin):
                 "delete_project",
                 "project",
                 str(project_id),
-                {"odk_account": self.current_account["id"], "deleted_at": timezone.now().isoformat()},
+                {
+                    "odk_account": self.current_account["id"],
+                    "deleted_at": timezone.now().isoformat(),
+                },
                 success=True,
             )
         except Exception as e:
