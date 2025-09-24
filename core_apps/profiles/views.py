@@ -43,15 +43,16 @@ class ProfileListAPIView(generics.ListAPIView):
     renderer_classes = [GenericJSONRenderer]
     pagination_class = StandardResultsSetPagination
     object_label = "profiles"
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
-    search_fields = ["user__first_name", "user__last_name"]
-    filterset_fields = ["odk_role", "gender", "country_of_origin"]
+    # filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    # search_fields = ["user__first_name", "user__last_name"]
+    # filterset_fields = ["odk_role", "gender", "country_of_origin"]
 
     def get_queryset(self) -> List[Profile]:
         return (
-            Profile.objects.exclude(user__is_staff=True)
-            .exclude(user__is_superuser=True)
-            .filter(odk_role=Profile.ODKRole.DATA_COLLECTOR)
+            Profile.objects.exclude(user__is_staff=True).exclude(
+                user__is_superuser=True
+            )
+            # .filter(odk_role=Profile.ODKRole.DATA_COLLECTOR)
         )
 
 
@@ -101,7 +102,7 @@ class AvatarUploadView(APIView):
             image = serializer.validated_data["avatar"]
             image_content = image.read()
             upload_avatar_to_media.delay(str(profile.id), image_content, image.name)
-            return Response(status=status.HTTP_200_OK)
+            return Response(status=status.HTTP_202_ACCEPTED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
