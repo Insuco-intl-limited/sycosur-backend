@@ -20,7 +20,9 @@ class ProjectSerializer(serializers.ModelSerializer):
             "created_by_name",
         ]
         read_only_fields = [
-            "id","pkid","odk_id",
+            "id",
+            "pkid",
+            "odk_id",
             "created_at",
             "updated_at",
             "created_by",

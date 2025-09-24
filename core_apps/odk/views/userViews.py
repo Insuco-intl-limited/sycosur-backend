@@ -20,7 +20,7 @@ class AppUserListView(APIView):
     def get(self, request, project_id):
         """
         Handles the retrieval of ODK app users associated with a specific project.
-        This includes checking the existence of the project in the database and 
+        This includes checking the existence of the project in the database and
         interacting with the ODK Central service to fetch the app users.
         """
         try:
@@ -45,7 +45,10 @@ class AppUserListView(APIView):
                     app_users = app_user_service.get_project_app_users(
                         django_project.odk_id
                     )
-                    return Response({"count":len(app_users), "results": app_users}, status=status.HTTP_200_OK)
+                    return Response(
+                        {"count": len(app_users), "results": app_users},
+                        status=status.HTTP_200_OK,
+                    )
                 except Exception as e:
                     raise e
         except Exception as e:
@@ -68,7 +71,7 @@ class AppUserCreateView(APIView):
     def post(self, request, project_id):
         """
         Handles the creation of an ODK app user associated with a specific project.
-        This includes checking the existence of the project in the database and 
+        This includes checking the existence of the project in the database and
         interacting with the ODK Central service to create the app user.
         """
         try:
@@ -100,7 +103,7 @@ class AppUserCreateView(APIView):
                     app_user = app_user_service.create_app_user(
                         django_project.odk_id, display_name
                     )
-                    return Response( app_user, status=status.HTTP_201_CREATED)
+                    return Response(app_user, status=status.HTTP_201_CREATED)
                 except Exception as e:
                     raise e
         except Exception as e:

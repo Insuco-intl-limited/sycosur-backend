@@ -18,7 +18,7 @@ if path.isfile(CUR_ENV_FILE):
 # Application definition
 
 DJANGO_APPS = [
-    #"whitenoise.runserver_nostatic",
+    # "whitenoise.runserver_nostatic",
     "config.settings.custom_app.CustomAdminInterfaceConfig",
     "colorfield",
     "django.contrib.admin",

@@ -72,6 +72,10 @@ class GenericJSONRenderer(JSONRenderer):
         if errors is not None:
             return super(GenericJSONRenderer, self).render(data)
 
+        # TODO: uncomment this and remove results key from list responses
+        # if isinstance(data, list):
+        #     data = {"results": data}
+
         # Format successful responses with our standard structure
         formatted_response = {"status_code": status_code, object_label: data}
 

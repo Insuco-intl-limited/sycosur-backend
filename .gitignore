@@ -18,7 +18,8 @@ secrets.json
 config/settings/local.py
 .idea/
 /docs
-
+.vscode/
+*.egg-info/
 /credentials
 Makefile
 .todo

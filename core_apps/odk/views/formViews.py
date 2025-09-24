@@ -1,4 +1,5 @@
 import logging
+
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -6,7 +7,9 @@ from rest_framework.views import APIView
 from core_apps.common.renderers import GenericJSONRenderer
 from core_apps.odk.services import ODKCentralService
 from core_apps.projects.models import Projects
+
 from ..cache import ODKCacheManager
+
 logger = logging.getLogger(__name__)
 
 
@@ -144,7 +147,7 @@ class ODKProjectFormsListView(APIView):
                 try:
                     forms = odk_service.get_project_forms(django_project.odk_id)
                     for form in forms:
-                        form['publish'] = form.get('publishedAt') is not None
+                        form["publish"] = form.get("publishedAt") is not None
                     return Response({"forms": forms}, status=status.HTTP_200_OK)
                 except Exception as e:
                     raise e
@@ -164,7 +167,6 @@ class ODKFormDetailView(APIView):
         GenericJSONRenderer,
     ]
     object_label = "form"
-
 
     def get(self, request, project_id, form_id):
         """
@@ -187,8 +189,8 @@ class ODKFormDetailView(APIView):
                 except Exception as e:
                     if "404" in str(e):
                         return Response(
-                            {"error": "Form not found"}, 
-                            status=status.HTTP_404_NOT_FOUND
+                            {"error": "Form not found"},
+                            status=status.HTTP_404_NOT_FOUND,
                         )
                     raise e
         except Exception as e:
@@ -230,8 +232,8 @@ class ODKFormDeleteView(APIView):
                 except Exception as e:
                     if "404" in str(e):
                         return Response(
-                            {"error": "Form not found"}, 
-                            status=status.HTTP_404_NOT_FOUND
+                            {"error": "Form not found"},
+                            status=status.HTTP_404_NOT_FOUND,
                         )
                     raise e
         except Exception as e:
