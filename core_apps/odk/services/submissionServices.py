@@ -76,8 +76,9 @@ class ODKSubmissionService(BaseODKService, ODKPermissionMixin):
                 )
             # Pour les exports, l'API retourne du contenu binaire
             response = self._make_request(
-                "GET", f"projects/{project_id}/forms/{form_id}/submissions.csv",
-                return_json=False
+                "GET",
+                f"projects/{project_id}/forms/{form_id}/submissions.csv",
+                return_json=False,
             )
             return response
         except ODKValidationError:

@@ -37,7 +37,9 @@ class ODKPublicAccessService(BaseODKService, ODKPermissionMixin):
         base_domain = self.base_url.replace("/v1", "")
         return f"{base_domain}{self.ENKETO_SINGLE_PATH}{enketo_id}?st={token}"
 
-    def _enhance_link_with_url(self, link_data: Dict, project_id: int, form_id: str) -> None:
+    def _enhance_link_with_url(
+        self, link_data: Dict, project_id: int, form_id: str
+    ) -> None:
         """Extract logic for adding public URL to link data"""
         if token := link_data.get("token"):
             enketo_id = self._get_enketo_id(project_id, form_id)
@@ -48,11 +50,8 @@ class ODKPublicAccessService(BaseODKService, ODKPermissionMixin):
         """Extract current account ID retrieval logic"""
         return self.current_account.get("id") if self.current_account else None
 
-
-
-
     def create_public_link(
-            self, project_id: int, form_id: str, display_name: str, once: bool = False
+        self, project_id: int, form_id: str, display_name: str, once: bool = False
     ) -> Dict:
         """Create a new Public Access Link for a form"""
         self._validate_project_access(project_id)
@@ -80,7 +79,7 @@ class ODKPublicAccessService(BaseODKService, ODKPermissionMixin):
         return link_data
 
     def list_public_links(
-            self, project_id: int, form_id: str, extended: bool = False
+        self, project_id: int, form_id: str, extended: bool = False
     ) -> List[Dict]:
         """List all Public Access Links for a form"""
         self._validate_project_access(project_id)
@@ -109,10 +108,9 @@ class ODKPublicAccessService(BaseODKService, ODKPermissionMixin):
             "public_link",
             token,
             {
-                "token": token[:self.TOKEN_PREVIEW_LENGTH] + "...",
+                "token": token[: self.TOKEN_PREVIEW_LENGTH] + "...",
                 "odk_account": self._get_current_account_id(),
             },
             success=True,
         )
         return True
-

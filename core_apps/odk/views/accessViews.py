@@ -5,14 +5,17 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from core_apps.common.renderers import GenericJSONRenderer
-from core_apps.odk.services import ODKCentralService
 from core_apps.odk.mixins import ProjectValidationMixin
 from core_apps.odk.serializers import PublicLinkCreateSerializer
+from core_apps.odk.services import ODKCentralService
 
 logger = logging.getLogger(__name__)
 
+
 class CreateListAccessView(ProjectValidationMixin, APIView):
-    renderer_classes = [GenericJSONRenderer,]
+    renderer_classes = [
+        GenericJSONRenderer,
+    ]
 
     @property
     def object_label(self):
@@ -24,10 +27,10 @@ class CreateListAccessView(ProjectValidationMixin, APIView):
         project, error_response = self.validate_project(project_id)
         if error_response:
             return error_response
-        
+
         # Extract 'extended' from query parameters
-        extended = request.GET.get('extended', 'false').lower() == 'true'
-        
+        extended = request.GET.get("extended", "false").lower() == "true"
+
         try:
             with ODKCentralService(request.user, request=request) as odk_service:
                 odk_project_id = project.odk_id
@@ -57,8 +60,8 @@ class CreateListAccessView(ProjectValidationMixin, APIView):
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        display_name = serializer.validated_data['display_name']
-        once = serializer.validated_data.get('once', False)
+        display_name = serializer.validated_data["display_name"]
+        once = serializer.validated_data.get("once", False)
         try:
             with ODKCentralService(request.user, request=request) as odk_service:
                 odk_project_id = project.odk_id

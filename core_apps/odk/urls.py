@@ -3,20 +3,20 @@ from django.urls import path
 from core_apps.odk.views import (
     AppUserCreateView,
     AppUserListView,
+    CreateListAccessView,
     FormCreateView,
     FormDeleteView,
     FormDetailView,
     FormDraftPublishView,
     FormDraftSubmissionsView,
     FormDraftView,
+    FormSubmissionDetailView,
+    FormSubmissionsCSVExportView,
+    FormSubmissionsListView,
     FormVersionsView,
     FormVersionXMLView,
-    ProjectFormsListView,
     ODKProjectListView,
-    FormSubmissionsListView,
-    FormSubmissionsCSVExportView,
-    FormSubmissionDetailView,
-    CreateListAccessView,
+    ProjectFormsListView,
 )
 
 app_name = "odk"
@@ -24,9 +24,7 @@ app_name = "odk"
 urlpatterns = [
     path("projects", ODKProjectListView.as_view(), name="projects-list"),
     # # Forms
-    path(
-        "projects/<int:project_id>/forms/", FormCreateView.as_view(), name="add-form"
-    ),
+    path("projects/<int:project_id>/forms/", FormCreateView.as_view(), name="add-form"),
     # List forms in a project
     path(
         "projects/<int:project_id>/forms",
@@ -113,5 +111,4 @@ urlpatterns = [
         CreateListAccessView.as_view(),
         name="form-public-links",
     ),
-
 ]

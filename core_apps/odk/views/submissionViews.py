@@ -1,14 +1,18 @@
 import logging
+
+from django.http import HttpResponse
+
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from django.http import HttpResponse
+
 from core_apps.common.renderers import GenericJSONRenderer
+from core_apps.odk.mixins import ProjectValidationMixin
 from core_apps.odk.services import ODKCentralService
 from core_apps.odk.services.exceptions import ODKValidationError
-from core_apps.odk.mixins import ProjectValidationMixin
 
 logger = logging.getLogger(__name__)
+
 
 class FormSubmissionsListView(ProjectValidationMixin, APIView):
     renderer_classes = [GenericJSONRenderer]
@@ -29,9 +33,7 @@ class FormSubmissionsListView(ProjectValidationMixin, APIView):
                         status=status.HTTP_404_NOT_FOUND,
                     )
 
-                submissions = odk_service.get_form_submissions(
-                    odk_project_id, form_id
-                )
+                submissions = odk_service.get_form_submissions(odk_project_id, form_id)
                 return Response({"results": submissions}, status=status.HTTP_200_OK)
         except Exception as e:
             logger.error(f"Error getting form submissions: {e}")
@@ -43,6 +45,7 @@ class FormSubmissionsListView(ProjectValidationMixin, APIView):
 
 class FormSubmissionsCSVExportView(ProjectValidationMixin, APIView):
     """Export all submissions of a form as CSV"""
+
     renderer_classes = [GenericJSONRenderer]
     object_label = "submission"
 
@@ -74,6 +77,7 @@ class FormSubmissionsCSVExportView(ProjectValidationMixin, APIView):
                 {"error": "Unable to export submissions CSV", "detail": str(e)},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
 
 class FormSubmissionDetailView(ProjectValidationMixin, APIView):
     renderer_classes = [GenericJSONRenderer]

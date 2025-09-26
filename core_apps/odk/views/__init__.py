@@ -1,3 +1,4 @@
+from .accessViews import CreateListAccessView
 from .draftViews import (
     FormDraftPublishView,
     FormDraftSubmissionsView,
@@ -12,9 +13,12 @@ from .formViews import (
     ProjectFormsListView,
 )
 from .projectViews import ODKProjectListView
+from .submissionViews import (
+    FormSubmissionDetailView,
+    FormSubmissionsCSVExportView,
+    FormSubmissionsListView,
+)
 from .userViews import AppUserCreateView, AppUserListView
-from .submissionViews import FormSubmissionsListView, FormSubmissionsCSVExportView, FormSubmissionDetailView
-from .accessViews import CreateListAccessView
 
 __all__ = [
     "ODKProjectListView",
