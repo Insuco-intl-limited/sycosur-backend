@@ -1,6 +1,7 @@
 from typing import Dict, List
 
 from .baseService import BaseODKService
+from .exceptions import ODKValidationError
 from .permissionServices import ODKPermissionMixin
 
 
@@ -17,19 +18,9 @@ class ODKSubmissionService(BaseODKService, ODKPermissionMixin):
                 raise PermissionError(
                     f"L'utilisateur {self.django_user.username} n'a pas accès au projet {project_id}"
                 )
-
             submissions = self._make_request(
                 "GET", f"projects/{project_id}/forms/{form_id}/submissions"
             )
-
-            self._log_action(
-                "list_submissions",
-                "submission",
-                f"{project_id}/{form_id}",
-                {"count": len(submissions), "odk_account": self.current_account["id"]},
-                success=True,
-            )
-
             return submissions
 
         except Exception as e:
@@ -52,22 +43,13 @@ class ODKSubmissionService(BaseODKService, ODKPermissionMixin):
         try:
             if not self._user_can_access_project_id(project_id):
                 raise PermissionError(
-                    f"L'utilisateur {self.django_user.get_full_name()} n'a pas accès au projet {project_id}"
+                    f"L'utilisateur {self.django_user.username} n'a pas accès au projet {project_id}"
                 )
 
             submission = self._make_request(
                 "GET",
                 f"projects/{project_id}/forms/{form_id}/submissions/{instance_id}",
             )
-
-            self._log_action(
-                "get_submission",
-                "submission",
-                f"{project_id}/{form_id}/{instance_id}",
-                {"odk_account": self.current_account["id"]},
-                success=True,
-            )
-
             return submission
 
         except Exception as e:
@@ -90,24 +72,16 @@ class ODKSubmissionService(BaseODKService, ODKPermissionMixin):
         try:
             if not self._user_can_access_project_id(project_id):
                 raise PermissionError(
-                    f"L'utilisateur {self.django_user.get_full_name()} n'a pas accès au projet {project_id}"
+                    f"L'utilisateur {self.django_user.username} n'a pas accès au projet {project_id}"
                 )
-
             # Pour les exports, l'API retourne du contenu binaire
             response = self._make_request(
-                "GET", f"projects/{project_id}/forms/{form_id}/submissions.csv"
+                "GET", f"projects/{project_id}/forms/{form_id}/submissions.csv",
+                return_json=False
             )
-
-            self._log_action(
-                "export_submissions_csv",
-                "submission",
-                f"{project_id}/{form_id}",
-                {"odk_account": self.current_account["id"]},
-                success=True,
-            )
-
             return response
-
+        except ODKValidationError:
+            raise
         except Exception as e:
             self._log_action(
                 "export_submissions_csv",
