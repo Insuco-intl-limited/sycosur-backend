@@ -342,26 +342,6 @@ class ODKFormService(BaseODKService, ODKPermissionMixin):
             )
             raise
 
-    def get_draft_test_token(self, project_id: int, form_id: str) -> str:
-        """Get test token for a draft"""
-        try:
-            draft_data = self.get_form_draft(project_id, form_id)
-            return draft_data.get("draftToken")
-        except Exception as e:
-            logger.error(f"Error getting test token: {e}")
-            raise
-
-    def get_draft_test_url(self, project_id: int, form_id: str) -> str:
-        """Generate Enketo test URL for a draft"""
-        try:
-            token = self.get_draft_test_token(project_id, form_id)
-            if token:
-                return f"{self.base_url.replace('/v1', '')}/test/{token}/projects/{project_id}/forms/{form_id}/draft"
-            return None
-        except Exception as e:
-            logger.error(f"Error generating test URL: {e}")
-            raise
-
     def get_draft_submissions(self, project_id: int, form_id: str) -> List[Dict]:
         """Get test submissions for a draft"""
         try:

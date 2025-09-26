@@ -13,7 +13,7 @@ from ..cache import ODKCacheManager
 logger = logging.getLogger(__name__)
 
 
-class ODKFormCreateView(APIView):
+class FormCreateView(APIView):
     renderer_classes = [
         GenericJSONRenderer,
     ]
@@ -123,7 +123,7 @@ class ODKFormCreateView(APIView):
             logger.error(f"Error rolling back ODK project creation: {rollback_error}")
 
 
-class ODKProjectFormsListView(APIView):
+class ProjectFormsListView(APIView):
     renderer_classes = [
         GenericJSONRenderer,
     ]
@@ -162,7 +162,7 @@ class ODKProjectFormsListView(APIView):
             )
 
 
-class ODKFormDetailView(APIView):
+class FormDetailView(APIView):
     renderer_classes = [
         GenericJSONRenderer,
     ]
@@ -204,7 +204,7 @@ class ODKFormDetailView(APIView):
             )
 
 
-class ODKFormDeleteView(APIView):
+class FormDeleteView(APIView):
 
     def delete(self, request, project_id, form_id):
         """

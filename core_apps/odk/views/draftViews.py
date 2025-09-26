@@ -16,7 +16,7 @@ from ..cache import ODKCacheManager
 logger = logging.getLogger(__name__)
 
 
-class ODKFormDraftView(APIView):
+class FormDraftView(APIView):
     """View for form draft management"""
 
     renderer_classes = [GenericJSONRenderer]
@@ -172,7 +172,7 @@ class ODKFormDraftView(APIView):
     # ================================
 
 
-class ODKFormDraftPublishView(APIView):
+class FormDraftPublishView(APIView):
     """View for publishing a draft"""
 
     renderer_classes = [GenericJSONRenderer]
@@ -213,7 +213,7 @@ class ODKFormDraftPublishView(APIView):
             )
 
 
-class ODKFormDraftSubmissionsView(APIView):
+class FormDraftSubmissionsView(APIView):
     """View for retrieving draft test submissions"""
 
     renderer_classes = [GenericJSONRenderer]
@@ -249,7 +249,7 @@ class ODKFormDraftSubmissionsView(APIView):
             )
 
 
-class ODKFormVersionsView(APIView):
+class FormVersionsView(APIView):
     """View for form version management"""
 
     renderer_classes = [GenericJSONRenderer]
@@ -285,7 +285,7 @@ class ODKFormVersionsView(APIView):
             )
 
 
-class ODKFormVersionXMLView(APIView):
+class FormVersionXMLView(APIView):
     """View for retrieving XML of a specific version"""
 
     renderer_classes = [GenericJSONRenderer]
@@ -324,45 +324,5 @@ class ODKFormVersionXMLView(APIView):
             logger.error(f"Error getting form version XML: {e}")
             return Response(
                 {"error": "Unable to get form version XML", "detail": str(e)},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-
-class ODKFormDraftTestView(APIView):
-    """View for getting Enketo test URL for a draft"""
-
-    renderer_classes = [GenericJSONRenderer]
-    object_label = "draft_test"
-
-    def get(self, request, project_id, form_id):
-        """Generate Enketo test URL for a draft"""
-        try:
-            django_project = Projects.objects.get(pkid=project_id)
-        except Projects.DoesNotExist:
-            return Response(
-                {"error": "Project not found"}, status=status.HTTP_404_NOT_FOUND
-            )
-
-        try:
-            with ODKCentralService(request.user, request=request) as odk_service:
-                odk_project_id = django_project.odk_id
-                if not odk_project_id:
-                    return Response(
-                        {"error": "ODK project not found"},
-                        status=status.HTTP_404_NOT_FOUND,
-                    )
-
-                test_url = odk_service.get_draft_test_url(odk_project_id, form_id)
-                test_token = odk_service.get_draft_test_token(odk_project_id, form_id)
-
-                return Response(
-                    {"testUrl": test_url, "testToken": test_token},
-                    status=status.HTTP_200_OK,
-                )
-
-        except Exception as e:
-            logger.error(f"Error getting draft test URL: {e}")
-            return Response(
-                {"error": "Unable to get draft test URL", "detail": str(e)},
                 status=status.HTTP_400_BAD_REQUEST,
             )
