@@ -1,0 +1,80 @@
+import logging
+
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from core_apps.common.renderers import GenericJSONRenderer
+from core_apps.odk.services import ODKCentralService
+from core_apps.odk.mixins import ProjectValidationMixin
+from core_apps.odk.serializers import PublicLinkCreateSerializer
+
+logger = logging.getLogger(__name__)
+
+class CreateListAccessView(ProjectValidationMixin, APIView):
+    renderer_classes = [GenericJSONRenderer,]
+
+    @property
+    def object_label(self):
+        if self.request.method == "GET":
+            return "public_links"
+        return "public_link"
+
+    def get(self, request, project_id, form_id):
+        project, error_response = self.validate_project(project_id)
+        if error_response:
+            return error_response
+        
+        # Extract 'extended' from query parameters
+        extended = request.GET.get('extended', 'false').lower() == 'true'
+        
+        try:
+            with ODKCentralService(request.user, request=request) as odk_service:
+                odk_project_id = project.odk_id
+                if not odk_project_id:
+                    return Response(
+                        {"error": "Project is not associated with ODK"},
+                        status=status.HTTP_404_NOT_FOUND,
+                    )
+
+                access_links = odk_service.list_public_links(
+                    odk_project_id, form_id, extended
+                )
+                return Response({"results": access_links}, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.error(f"Error getting form access links: {e}")
+            return Response(
+                {"error": "Unable to get form access links", "detail": str(e)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+    def post(self, request, project_id, form_id):
+        project, error_response = self.validate_project(project_id)
+        if error_response:
+            return error_response
+
+        serializer = PublicLinkCreateSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        display_name = serializer.validated_data['display_name']
+        once = serializer.validated_data.get('once', False)
+        try:
+            with ODKCentralService(request.user, request=request) as odk_service:
+                odk_project_id = project.odk_id
+                if not odk_project_id:
+                    return Response(
+                        {"error": "Project is not associated with ODK"},
+                        status=status.HTTP_404_NOT_FOUND,
+                    )
+
+                access_link = odk_service.create_public_link(
+                    odk_project_id, form_id, display_name, once
+                )
+                return Response(access_link, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            logger.error(f"Error creating form access link: {e}")
+            return Response(
+                {"error": "Unable to create form access link", "detail": str(e)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
