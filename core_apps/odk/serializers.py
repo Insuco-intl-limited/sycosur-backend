@@ -31,3 +31,16 @@ class ODKProjectSerializer(serializers.ModelSerializer):
 
     def get_forms_count(self, obj):
         return obj.forms.count()
+
+
+class PublicLinkCreateSerializer(serializers.Serializer):
+    """Validate payload to create a public access link for a form"""
+
+    display_name = serializers.CharField(allow_blank=False, max_length=255)
+    once = serializers.BooleanField(required=False, default=False)
+
+    def validate_display_name(self, value: str) -> str:
+        cleaned = value.strip()
+        if not cleaned:
+            raise serializers.ValidationError("display_name cannot be empty")
+        return cleaned

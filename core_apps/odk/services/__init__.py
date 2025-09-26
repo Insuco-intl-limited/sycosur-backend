@@ -4,10 +4,11 @@ from .formServices import ODKFormService
 from .permissionServices import ODKPermissionMixin
 from .projectServices import ODKProjectService
 from .submissionServices import ODKSubmissionService
+from .formAccessServices import ODKPublicAccessService
 
 
 class ODKCentralService(
-    ODKProjectService, ODKFormService, ODKSubmissionService, ODKAppUserService
+    ODKProjectService, ODKFormService, ODKSubmissionService, ODKAppUserService, ODKPublicAccessService
 ):
 
     pass
@@ -21,4 +22,5 @@ __all__ = [
     "ODKPermissionMixin",
     "ODKCentralService",
     "ODKAppUserService",
+    "ODKPublicAccessService",
 ]

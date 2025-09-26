@@ -4,12 +4,9 @@ import threading
 import time
 from datetime import timedelta
 from typing import Any, Dict
-
 from django.conf import settings
 from django.utils import timezone
-
 import requests
-
 from core_apps.common.utils import log_audit_action
 from core_apps.odk.models import ODKUserSessions
 from core_apps.odk.utils import get_ssl_verify
@@ -18,7 +15,6 @@ from .exceptions import ODKValidationError
 from .poolServices import ODKAccountPool
 
 logger = logging.getLogger(__name__)
-
 
 class BaseODKService:
     """Base service for interacting with the ODK Central API"""
@@ -139,9 +135,9 @@ class BaseODKService:
                 if response.status_code == 204 or not response.content:
                     return {"success": True, "status_code": response.status_code}
 
-                # Return raw text if return_json=False (e.g., for XML responses)
+                # Return raw content if return_json=False (e.g., for CSV/XML responses)
                 if not return_json:
-                    return response.text
+                    return response.content
 
                 return response.json()
 
