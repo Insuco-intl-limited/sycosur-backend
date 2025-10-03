@@ -19,7 +19,8 @@ class ODKSubmissionService(BaseODKService, ODKPermissionMixin):
                     f"L'utilisateur {self.django_user.username} n'a pas accès au projet {project_id}"
                 )
             submissions = self._make_request(
-                "GET", f"projects/{project_id}/forms/{form_id}/submissions"
+                "GET", f"projects/{project_id}/forms/{form_id}/submissions",
+                headers={"X-Extended-Metadata": "true"}
             )
             return submissions
 
@@ -49,6 +50,7 @@ class ODKSubmissionService(BaseODKService, ODKPermissionMixin):
             submission = self._make_request(
                 "GET",
                 f"projects/{project_id}/forms/{form_id}/submissions/{instance_id}",
+                headers={"X-Extended-Metadata": "true"}
             )
             return submission
 

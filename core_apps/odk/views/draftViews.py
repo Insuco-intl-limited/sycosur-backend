@@ -45,26 +45,12 @@ class FormDraftView(APIView):
                         {"error": "ODK project not found"},
                         status=status.HTTP_404_NOT_FOUND,
                     )
-
                 draft_data = odk_service.get_form_draft(odk_project_id, form_id)
-
-                # Add Enketo test URL
-                # test_url = odk_service.get_draft_test_url(odk_project_id, form_id)
-                # if test_url:
-                #     draft_data["testUrl"] = test_url
 
                 return Response(draft_data, status=status.HTTP_200_OK)
 
-        except ODKValidationError as e:
-            logger.error(f"ODK validation error getting draft: {e}")
-            return Response(
-                {
-                    "error": "Validation error from ODK Central",
-                    "detail": str(e),
-                    "validation_errors": e.error_detail,
-                },
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        except ODKValidationError:
+            raise
         except Exception as e:
             logger.error(f"Error getting draft: {e}")
             return Response(
@@ -122,11 +108,8 @@ class FormDraftView(APIView):
 
                 return Response(draft, status=status.HTTP_201_CREATED)
 
-        except ODKValidationError as e:
-            return e.to_response(
-                error_message="Form validation failed",
-                log_message=f"ODK validation error creating/updating draft: {e}",
-            )
+        except ODKValidationError :
+            raise
         except Exception as e:
             logger.error(f"Error creating/updating draft: {e}")
             return Response(

@@ -53,6 +53,7 @@ CACHES = {
         },
     }
 }
+
 LOCAL_APPS = [
     "core_apps.users",
     "core_apps.common",
@@ -241,7 +242,7 @@ REST_FRAMEWORK = {
     ),
     "DEFAULT_THROTTLE_RATES": {
         "anon": "200/day",
-        "user": "500/day",
+        "user": "3000/day",
     },
     # 'DEFAULT_RENDERER_CLASSES': [
     #     'core_apps.common.renderers.GenericJSONRenderer',
