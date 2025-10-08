@@ -28,7 +28,7 @@ class ODKPermissionMixin:
 
         return self.django_user.profile
 
-    def _is_high_privilege_role(self, profile: "Profile") -> bool:
+    def _is_high_privilege_role(self, profile) -> bool:
         """Vérifie si l'utilisateur a un rôle privilégié (Manager ou Administrator)"""
         return profile.odk_role in [
             profile.ODKRole.MANAGER,
@@ -57,10 +57,7 @@ class ODKPermissionMixin:
                 return True
             except ProjectPermissions.DoesNotExist:
 
-                if profile.odk_role == profile.ODKRole.DATA_COLLECTOR:
-                    return True
-                # Sinon, pas d'accès
-                return False
+                return profile.odk_role == profile.ODKRole.DATA_COLLECTOR
         except Projects.DoesNotExist:
             # Si le projet n'est pas encore dans la DB, on autorise l'accès aux superviseurs et +
             return profile.odk_role in [

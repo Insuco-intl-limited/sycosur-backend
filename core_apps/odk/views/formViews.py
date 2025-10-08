@@ -148,7 +148,7 @@ class ProjectFormsListView(APIView):
                     forms = odk_service.get_project_forms(django_project.odk_id)
                     for form in forms:
                         form["publish"] = form.get("publishedAt") is not None
-                    return Response({"forms": forms}, status=status.HTTP_200_OK)
+                    return Response({"count":len(forms),"forms": forms}, status=status.HTTP_200_OK)
                 except Exception as e:
                     raise e
         except Exception as e:

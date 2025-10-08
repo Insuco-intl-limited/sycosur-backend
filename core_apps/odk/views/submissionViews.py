@@ -34,7 +34,7 @@ class FormSubmissionsListView(ProjectValidationMixin, APIView):
                     )
 
                 submissions = odk_service.get_form_submissions(odk_project_id, form_id)
-                return Response({"results": submissions}, status=status.HTTP_200_OK)
+                return Response({"count":len(submissions), "results": submissions}, status=status.HTTP_200_OK)
         except Exception as e:
             logger.error(f"Error getting form submissions: {e}")
             return Response(

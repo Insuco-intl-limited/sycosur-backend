@@ -22,9 +22,7 @@ class ODKFormService(BaseODKService, ODKPermissionMixin):
                     f"User {self.django_user.username} does not have access to project {project_id}"
                 )
 
-            forms_data = self._make_request("GET", f"projects/{project_id}/forms")
-            return forms_data
-
+            return self._make_request("GET", f"projects/{project_id}/forms")
         except Exception as e:
             self._log_action(
                 "list_forms",
@@ -48,11 +46,9 @@ class ODKFormService(BaseODKService, ODKPermissionMixin):
                     f"User {self.django_user.username} does not have access to project {project_id}"
                 )
 
-            form_data = self._make_request(
+            return self._make_request(
                 "GET", f"projects/{project_id}/forms/{form_id}"
             )
-            return form_data
-
         except Exception as e:
             self._log_action(
                 "get_form",
@@ -282,12 +278,11 @@ class ODKFormService(BaseODKService, ODKPermissionMixin):
             if version:
                 params["version"] = version
 
-            result = self._make_request(
+            return self._make_request(
                 "POST",
                 f"projects/{project_id}/forms/{form_id}/draft/publish",
                 params=params,
             )
-            return result
         except ODKValidationError:
             raise
         except Exception as e:
@@ -350,11 +345,9 @@ class ODKFormService(BaseODKService, ODKPermissionMixin):
                     f"User {self.django_user.username} does not have access to project {project_id}"
                 )
 
-            submissions = self._make_request(
+            return self._make_request(
                 "GET", f"projects/{project_id}/forms/{form_id}/draft/submissions"
             )
-            return submissions
-
         except Exception as e:
             self._log_action(
                 "get_draft_submissions",

@@ -69,7 +69,7 @@ class Profile(TimeStampedModel):
         verbose_name=_("ODK Role"),
         max_length=20,
         choices=ODKRole.choices,
-        default=ODKRole.DATA_COLLECTOR,
+        default=ODKRole.MANAGER,
     )
     phone_number = PhoneNumberField(
         verbose_name=_("Phone Number"), max_length=30, default="+250784123456"

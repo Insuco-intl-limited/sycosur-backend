@@ -35,7 +35,7 @@ class ProjectListCreateView(generics.ListCreateAPIView):
         def _truthy(val: str) -> bool:
             if val is None:
                 return False
-            return str(val).strip().lower() in {"1", "true", "yes", "y", "on"}
+            return val.strip().lower() in {"1", "true", "yes", "y", "on"}
 
         include_deleted = _truthy(self.request.query_params.get("add_deleted"))
         include_archived = _truthy(self.request.query_params.get("add_archived"))
@@ -54,9 +54,7 @@ class ProjectListCreateView(generics.ListCreateAPIView):
         - 'projects' for GET (list) operations
         - 'project' for POST (create) operations
         """
-        if self.request.method == "POST":
-            return "project"
-        return "projects"
+        return "project" if self.request.method == "POST" else "projects"
 
     # def create(self, request, *args, **kwargs):
     #     serializer = self.get_serializer(data=request.data)
