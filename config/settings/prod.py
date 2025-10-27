@@ -10,10 +10,10 @@ SECRET_KEY = getenv(
 if not SECRET_KEY:
     raise ValueError("DJANGO_SECRET_KEY must be set in the environment.")
 
-CSRF_TRUSTED_ORIGINS = ["https://api.insuco.net", "https://sycosur.insuco.net"]
+CSRF_TRUSTED_ORIGINS = ["https://sycosur.insuco.net", "https://www.sycosur.insuco.net", "https://insuco.com"]
 
 
-ALLOWED_HOSTS = ["api.insuco.net", "149.56.16.98", "sycosur.insuco.net"]
+ALLOWED_HOSTS = [".insuco.net"]
 
 # CORS settings
 CORS_ALLOW_ALL_ORIGINS = False
@@ -22,17 +22,11 @@ CORS_ALLOWED_ORIGINS = [
     "https://drive.google.com",
     "https://googleusercontent.com",
     "https://flower.insuco.net",
+    "https://insuco.com",
 ]
-CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOW_METHODS = ["DELETE", "GET", "OPTIONS", "PATCH", "POST", "PUT"]
-CORS_ALLOW_HEADERS = [
-    "accept",
-    "authorization",
-    "content-type",
-    "origin",
-    "x-csrftoken",
-    "x-requested-with",
-]
+# CORS_ALLOW_CREDENTIALS = True
+# CORS_ALLOW_METHODS = ["DELETE", "GET", "OPTIONS", "PATCH", "POST", "PUT"]
+
 
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True

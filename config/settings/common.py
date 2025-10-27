@@ -242,7 +242,7 @@ REST_FRAMEWORK = {
     ),
     "DEFAULT_THROTTLE_RATES": {
         "anon": "200/day",
-        "user": "3000/day",
+        "user": "10000/day",
     },
     # 'DEFAULT_RENDERER_CLASSES': [
     #     'core_apps.common.renderers.GenericJSONRenderer',

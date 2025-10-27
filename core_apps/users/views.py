@@ -102,7 +102,7 @@ class CustomTokenRefreshView(TokenRefreshView):
 
 
 class CustomProviderAuthView(ProviderAuthView):
-    permission_classes = [AllowAny]
+    #permission_classes = AllowAny
     def post(self, request: Request, *args, **kwargs) -> Response:
         provider_res = super().post(request, *args, **kwargs)
 
@@ -116,7 +116,6 @@ class CustomProviderAuthView(ProviderAuthView):
                     access_token=access_token,
                     refresh_token=refresh_token,
                 )
-
                 provider_res.data.pop("access", None)
                 provider_res.data.pop("refresh", None)
 

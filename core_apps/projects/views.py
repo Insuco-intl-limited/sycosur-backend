@@ -93,11 +93,12 @@ class ProjectDetailView(generics.RetrieveUpdateDestroyAPIView):
     def perform_update(self, serializer):
         """Update the project"""
         project = serializer.save()
+        return Response(project, status=status.HTTP_200_OK)
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
         self.perform_destroy(instance)
-        return Response({"detail": "Project deleted"}, status=status.HTTP_200_OK)
+        return Response( status=status.HTTP_204_NO_CONTENT)
 
     def perform_destroy(self, instance):
         """Soft delete the project by setting deleted=True"""
