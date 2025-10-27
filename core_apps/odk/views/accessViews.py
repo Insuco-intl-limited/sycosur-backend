@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 class CreateListAccessView(ProjectValidationMixin, APIView):
+    """Handles creation and listing of public access links for ODK forms"""
     renderer_classes = [
         GenericJSONRenderer,
     ]
@@ -22,11 +23,11 @@ class CreateListAccessView(ProjectValidationMixin, APIView):
         return "public_links" if self.request.method == "GET" else "public_link"
 
     def get(self, request, project_id, form_id):
+        """List all public access links for a specific form"""
         project, error_response = self.validate_project(project_id)
         if error_response:
             return error_response
 
-        # Extract 'extended' from query parameters
         extended = request.GET.get("extended", "false").lower() == "true"
 
         try:
@@ -50,6 +51,7 @@ class CreateListAccessView(ProjectValidationMixin, APIView):
             )
 
     def post(self, request, project_id, form_id):
+        """Create a new public access link for a specific form"""
         project, error_response = self.validate_project(project_id)
         if error_response:
             return error_response
@@ -77,5 +79,31 @@ class CreateListAccessView(ProjectValidationMixin, APIView):
             logger.error(f"Error creating form access link: {e}")
             return Response(
                 {"error": "Unable to create form access link", "detail": str(e)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+
+class DeleteAccessLinkView(ProjectValidationMixin, APIView):
+    """Handles deletion of a specific public access link for ODK forms"""
+    def delete(self, request, project_id, form_id, link_id):
+        project, error_response = self.validate_project(project_id)
+        if error_response:
+            return error_response
+
+        try:
+            with ODKCentralService(request.user, request=request) as odk_service:
+                odk_project_id = project.odk_id
+                if not odk_project_id:
+                    return Response(
+                        {"error": "Project is not associated with ODK"},
+                        status=status.HTTP_404_NOT_FOUND,
+                    )
+
+                odk_service.delete_public_link(odk_project_id, form_id, link_id)
+                return Response(status=status.HTTP_204_NO_CONTENT)
+        except Exception as e:
+            logger.error(f"Error deleting form access link: {e}")
+            return Response(
+                {"error": "Unable to delete form access link", "detail": str(e)},
                 status=status.HTTP_400_BAD_REQUEST,
             )

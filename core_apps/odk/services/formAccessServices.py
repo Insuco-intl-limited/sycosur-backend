@@ -1,7 +1,5 @@
 import logging
 from typing import Dict, List, Optional
-from urllib.parse import urljoin
-
 from .baseService import BaseODKService
 from .exceptions import ODKValidationError
 from .permissionServices import ODKPermissionMixin
@@ -11,7 +9,6 @@ logger = logging.getLogger(__name__)
 
 class ODKPublicAccessService(BaseODKService, ODKPermissionMixin):
     """Service for managing ODK Public Access Links"""
-
     # Extract constants for better maintainability
     EXTENDED_METADATA_HEADER = "X-Extended-Metadata"
     TOKEN_PREVIEW_LENGTH = 10
@@ -42,8 +39,7 @@ class ODKPublicAccessService(BaseODKService, ODKPermissionMixin):
     ) -> None:
         """Extract logic for adding public URL to link data"""
         if token := link_data.get("token"):
-            enketo_id = self._get_enketo_id(project_id, form_id)
-            if enketo_id:
+            if enketo_id := self._get_enketo_id(project_id, form_id):
                 link_data["public_url"] = self._build_public_url(enketo_id, token)
 
     def _get_current_account_id(self) -> Optional[str]:
@@ -92,8 +88,7 @@ class ODKPublicAccessService(BaseODKService, ODKPermissionMixin):
         )
 
         if links_data:
-            enketo_id = self._get_enketo_id(project_id, form_id)
-            if enketo_id:
+            if enketo_id := self._get_enketo_id(project_id, form_id):
                 for link in links_data:
                     if token := link.get("token"):
                         link["public_url"] = self._build_public_url(enketo_id, token)
@@ -108,7 +103,7 @@ class ODKPublicAccessService(BaseODKService, ODKPermissionMixin):
             "public_link",
             token,
             {
-                "token": token[: self.TOKEN_PREVIEW_LENGTH] + "...",
+                "token": f"{token[:self.TOKEN_PREVIEW_LENGTH]}...",
                 "odk_account": self._get_current_account_id(),
             },
             success=True,

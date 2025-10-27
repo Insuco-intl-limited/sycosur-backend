@@ -140,11 +140,7 @@ class BaseODKService:
                     return {"success": True, "status_code": response.status_code}
 
                 # Return raw content if return_json=False (e.g., for CSV/XML responses)
-                if not return_json:
-                    return response.content
-
-                return response.json()
-
+                return response.json() if return_json else response.content
             except requests.exceptions.ConnectionError as e:
                 logger.error(f"Connection error to ODK Central ({self.base_url}): {e}")
                 if attempt < max_retries - 1:

@@ -18,12 +18,11 @@ class ODKSubmissionService(BaseODKService, ODKPermissionMixin):
                 raise PermissionError(
                     f"L'utilisateur {self.django_user.username} n'a pas accès au projet {project_id}"
                 )
-            submissions = self._make_request(
-                "GET", f"projects/{project_id}/forms/{form_id}/submissions",
-                headers={"X-Extended-Metadata": "true"}
+            return self._make_request(
+                "GET",
+                f"projects/{project_id}/forms/{form_id}/submissions",
+                headers={"X-Extended-Metadata": "true"},
             )
-            return submissions
-
         except Exception as e:
             self._log_action(
                 "list_submissions",
@@ -47,13 +46,11 @@ class ODKSubmissionService(BaseODKService, ODKPermissionMixin):
                     f"L'utilisateur {self.django_user.username} n'a pas accès au projet {project_id}"
                 )
 
-            submission = self._make_request(
+            return self._make_request(
                 "GET",
                 f"projects/{project_id}/forms/{form_id}/submissions/{instance_id}",
-                headers={"X-Extended-Metadata": "true"}
+                headers={"X-Extended-Metadata": "true"},
             )
-            return submission
-
         except Exception as e:
             self._log_action(
                 "get_submission",
@@ -69,20 +66,30 @@ class ODKSubmissionService(BaseODKService, ODKPermissionMixin):
             )
             raise
 
-    def export_submissions_csv(self, project_id: int, form_id: str) -> bytes:
-        """Exporte les soumissions d'un formulaire en CSV"""
+    def export_submissions(self, project_id: int, form_id: str, to:str="csv") -> bytes:
+        """Exporte les soumissions d'un formulaire en CSV ou XLSX"""
         try:
             if not self._user_can_access_project_id(project_id):
                 raise PermissionError(
                     f"L'utilisateur {self.django_user.username} n'a pas accès au projet {project_id}"
                 )
-            # Pour les exports, l'API retourne du contenu binaire
-            response = self._make_request(
-                "GET",
+            result = self._make_request(
+                "POST",
                 f"projects/{project_id}/forms/{form_id}/submissions.csv",
                 return_json=False,
             )
-            return response
+            if to == "xlsx":
+                import pandas as pd
+                from io import StringIO, BytesIO
+
+                df = pd.read_csv(StringIO(result.decode('utf-8')))
+                output = BytesIO()
+                with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+                    df.to_excel(writer, index=False, sheet_name='Submissions')
+                return output.getvalue()
+
+            return result
+
         except ODKValidationError:
             raise
         except Exception as e:
@@ -99,3 +106,32 @@ class ODKSubmissionService(BaseODKService, ODKPermissionMixin):
                 success=False,
             )
             raise
+
+    def submissions_data(self, project_id: int, form_id: str):
+        try:
+            if not self._user_can_access_project_id(project_id):
+                raise PermissionError(
+                    f"User {self.django_user.username} has not access to project {project_id}"
+                )
+            headers = {"content-type": "application/json"}
+            return self._make_request(
+                "GET",
+                f"projects/{project_id}/forms/{form_id}.svc/Submissions",
+                headers=headers,
+            )
+        except ODKValidationError:
+            raise
+        except Exception as e:
+            self._log_action(
+                "export_submissions_data",
+                "submission",
+                f" project:{project_id}| form:{form_id} ",
+                {
+                    "error": str(e),
+                    "odk_account": (
+                        self.current_account["id"] if self.current_account else None
+                    ),
+                },
+                success=False,
+            )
+

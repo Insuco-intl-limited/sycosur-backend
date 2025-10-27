@@ -22,3 +22,12 @@ class ProjectValidationMixin:
                 {"error": "Project not found"}, status=status.HTTP_404_NOT_FOUND
             )
         return project, None
+
+    def validate_odk_association(self, project:Projects):
+        """Validate if project is associated with ODK"""
+        if not project.odk_id:
+            return Response(
+                {"error": "Project is not associated with ODK"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        return project.odk_id, None

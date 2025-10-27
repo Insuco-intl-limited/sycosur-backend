@@ -17,8 +17,9 @@ class ODKProjectListView(APIView):
     object_label = "odkProjects"
 
     def get(self, request):
-        cached_projects = ODKCacheManager.get_cached_user_projects(request.user.id)
-        if cached_projects:
+        if cached_projects := ODKCacheManager.get_cached_user_projects(
+            request.user.id
+        ):
             # Retourne les données en cache
             return Response(
                 {

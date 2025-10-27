@@ -1,10 +1,8 @@
 import logging
 from typing import Dict, List
-
 from .baseService import BaseODKService
 from .exceptions import ODKValidationError
 from .permissionServices import ODKPermissionMixin
-
 logger = logging.getLogger(__name__)
 
 
@@ -266,7 +264,7 @@ class ODKFormService(BaseODKService, ODKPermissionMixin):
             )
             raise
 
-    def publish_draft(self, project_id: int, form_id: str, version: str = None) -> Dict:
+    def publish_draft(self, project_id: int, form_id: str, version: str = None) :
         """Publish a draft as a form version"""
         try:
             if not self._user_can_access_project_id(project_id):

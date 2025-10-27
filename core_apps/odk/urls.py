@@ -11,12 +11,12 @@ from core_apps.odk.views import (
     FormDraftSubmissionsView,
     FormDraftView,
     FormSubmissionDetailView,
-    FormSubmissionsCSVExportView,
+    FormSubmissionsExportView,
     FormSubmissionsListView,
     FormVersionsView,
     FormVersionXMLView,
     ODKProjectListView,
-    ProjectFormsListView,
+    ProjectFormsListView, AppUserRevokeView, AppUsersFormView, MatrixView, SubmissionsDataView
 )
 
 app_name = "odk"
@@ -47,13 +47,17 @@ urlpatterns = [
     path(
         "projects/<int:project_id>/forms/<str:form_id>/submissions/",
         FormSubmissionsListView.as_view(),
-        name="form-submissions",
+        name="submissions-list",
     ),
-    # Submissions CSV export
+    # Submissions CSV export JSON
     path(
         "projects/<int:project_id>/forms/<str:form_id>/submissions.csv",
-        FormSubmissionsCSVExportView.as_view(),
-        name="form-submissions-csv",
+        FormSubmissionsExportView.as_view(),
+        name="submissions-csv",
+    ),
+    path(
+        "projects/<int:project_id>/forms/<str:form_id>/submissions.json",
+        SubmissionsDataView.as_view(), name="submissions-json"
     ),
     # Submission details
     path(
@@ -71,6 +75,22 @@ urlpatterns = [
         "projects/<int:project_id>/app-users",
         AppUserListView.as_view(),
         name="list-app-users",
+    ),
+    path(
+        "projects/<int:project_id>/app-users/<str:token>/revoke/",
+        AppUserRevokeView.as_view(),
+        name="revoke-app-user",
+    ),
+    path(
+        "projects/<int:project_id>/forms/<str:form_id>/app-users/<int:user_id>/",
+        AppUsersFormView.as_view(),
+        name="form-app-users",
+    ),
+    path("projects/<int:project_id>/forms/<str:form_id>/app-users", AppUsersFormView.as_view(), name="form-user-list"),
+    path(
+        "projects/<int:project_id>/matrix",
+        MatrixView.as_view(),
+        name="form-user-matrix",
     ),
     # ================================
     # MVP ROUTES FOR DRAFT MANAGEMENT
@@ -99,7 +119,7 @@ urlpatterns = [
         FormVersionsView.as_view(),
         name="form-versions",
     ),
-    # XML for specific version
+    # XML for a specific version
     path(
         "projects/<int:project_id>/forms/<str:form_id>/versions/<str:version>.xml",
         FormVersionXMLView.as_view(),
