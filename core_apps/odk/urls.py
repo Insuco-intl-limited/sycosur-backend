@@ -16,7 +16,12 @@ from core_apps.odk.views import (
     FormVersionsView,
     FormVersionXMLView,
     ODKProjectListView,
-    ProjectFormsListView, AppUserRevokeView, AppUsersFormView, MatrixView, SubmissionsDataView
+    ProjectFormsListView,
+    AppUserRevokeView,
+    AppUsersFormView,
+    MatrixView,
+    SubmissionsDataView,
+    FormXLSXDownloadView,
 )
 
 app_name = "odk"
@@ -36,6 +41,12 @@ urlpatterns = [
         "projects/<int:project_id>/forms/<str:form_id>/",
         FormDetailView.as_view(),
         name="form-detail",
+    ),
+    # Download XLSX of a form (original Excel upload)
+    path(
+        "projects/<int:project_id>/forms/<str:form_id>/xlsx/",
+        FormXLSXDownloadView.as_view(),
+        name="form-download-xlsx",
     ),
     # Form deletion
     path(

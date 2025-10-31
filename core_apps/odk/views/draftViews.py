@@ -1,20 +1,15 @@
 import logging
-
 from django.http import HttpResponse
-
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
 from core_apps.common.renderers import GenericJSONRenderer
 from core_apps.odk.services import ODKCentralService
 from core_apps.odk.services.exceptions import ODKValidationError
 from core_apps.projects.models import Projects
-
 from ..cache import ODKCacheManager
 
 logger = logging.getLogger(__name__)
-
 
 class FormDraftView(APIView):
     """View for form draft management"""
@@ -295,7 +290,6 @@ class FormVersionXMLView(APIView):
                 xml_data = odk_service.get_form_version_xml(
                     odk_project_id, form_id, version
                 )
-
                 response = HttpResponse(xml_data, content_type="application/xml")
                 response["Content-Disposition"] = (
                     f'attachment; filename="{form_id}_v{version}.xml"'

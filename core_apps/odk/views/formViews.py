@@ -3,12 +3,14 @@ import logging
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from django.http import HttpResponse
 
 from core_apps.common.renderers import GenericJSONRenderer
 from core_apps.odk.services import ODKCentralService
 from core_apps.projects.models import Projects
 
 from ..cache import ODKCacheManager
+from ..mixins import ProjectValidationMixin
 
 logger = logging.getLogger(__name__)
 
@@ -244,4 +246,41 @@ class FormDeleteView(APIView):
                     "detail": str(e),
                 },
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+class FormXLSXDownloadView(ProjectValidationMixin, APIView):
+    """Download the XLSX source of a Form from ODK Central and stream it to the client."""
+
+    def get(self, request, project_id: int, form_id: str):
+        project, error_response = self.validate_project(project_id)
+        if error_response:
+            return error_response
+
+        odk_project_id, odk_error = self.validate_odk_association(project)
+        if odk_error:
+            return odk_error
+
+        try:
+            with ODKCentralService(request.user, request=request) as odk_service:
+                content = odk_service.download_form_xlsx(odk_project_id, form_id)
+                filename = request.query_params.get("filename") or f"{form_id}.xlsx"
+
+                response = HttpResponse(
+                    content,
+                    content_type=(
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                    ),
+                )
+                response["Content-Disposition"] = f'attachment; filename="{filename}"'
+                return response
+        except Exception as e:
+            msg = str(e).lower()
+            if "404" in msg or "not found" in msg:
+                return Response(
+                    {"error": "Form or XLSX not found"},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+            return Response(
+                {"error": "Unable to download form XLSX", "detail": str(e)},
+                status=status.HTTP_400_BAD_REQUEST,
             )

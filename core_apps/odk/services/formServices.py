@@ -12,6 +12,14 @@ class ODKFormService(BaseODKService, ODKPermissionMixin):
     def __init__(self, django_user, request=None):
         super().__init__(django_user, request=request)
 
+    def _validate_project_access(self, project_id: int) -> None:
+        """Extract common permission validation logic"""
+        if not self._user_can_access_project_id(project_id):
+            raise PermissionError(
+                f"User {self.django_user.username} cannot access project {project_id}"
+            )
+
+
     def get_project_forms(self, project_id: int) -> List[Dict]:
         """Retrieve forms for a specific project"""
         try:
@@ -58,6 +66,26 @@ class ODKFormService(BaseODKService, ODKPermissionMixin):
                         self.current_account["id"] if self.current_account else None
                     ),
                 },
+                success=False,
+            )
+            raise
+
+    def download_form_xlsx(self, project_id: int, form_id: str) -> bytes:
+        try:
+            self._validate_project_access(project_id)
+            return self._make_request(
+                "GET",
+                f"projects/{project_id}/forms/{form_id}.xlsx",
+                return_json=False,
+            )
+        except ODKValidationError:
+            raise
+        except Exception as e:
+            self._log_action(
+                "download_form_xlsx",
+                "form",
+                f"{project_id}/{form_id}",
+                {"error": str(e), "odk_account": self.current_account["id"] if self.current_account else None},
                 success=False,
             )
             raise

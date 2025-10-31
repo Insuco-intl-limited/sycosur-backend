@@ -133,7 +133,6 @@ class SubmissionsDataView(ProjectValidationMixin, APIView):
                     )
 
                 data = odk_service.submissions_data(odk_id, form_id)
-                print(data)
                 return Response(data, status=status.HTTP_200_OK)
         except Exception as e:
             logger.error(f"Error getting submissions data: {e}")

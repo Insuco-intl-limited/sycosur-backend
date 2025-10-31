@@ -16,6 +16,7 @@ staticfiles/
 .envs/.env.prod.example
 secrets.json
 config/settings/local.py
+requirements/local.txt
 .idea/
 /docs
 .vscode/
