@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 
 class CreateListAccessView(ProjectValidationMixin, APIView):
     """Handles creation and listing of public access links for ODK forms"""
+
     renderer_classes = [
         GenericJSONRenderer,
     ]
@@ -42,7 +43,10 @@ class CreateListAccessView(ProjectValidationMixin, APIView):
                 access_links = odk_service.list_public_links(
                     odk_project_id, form_id, extended
                 )
-                return Response({"count":len(access_links),"results": access_links}, status=status.HTTP_200_OK)
+                return Response(
+                    {"count": len(access_links), "results": access_links},
+                    status=status.HTTP_200_OK,
+                )
         except Exception as e:
             logger.error(f"Error getting form access links: {e}")
             return Response(
@@ -85,6 +89,7 @@ class CreateListAccessView(ProjectValidationMixin, APIView):
 
 class DeleteAccessLinkView(ProjectValidationMixin, APIView):
     """Handles deletion of a specific public access link for ODK forms"""
+
     def delete(self, request, project_id, form_id, link_id):
         project, error_response = self.validate_project(project_id)
         if error_response:

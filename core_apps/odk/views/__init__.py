@@ -10,17 +10,23 @@ from .formViews import (
     FormCreateView,
     FormDeleteView,
     FormDetailView,
-    ProjectFormsListView,
     FormXLSXDownloadView,
+    ProjectFormsListView,
 )
 from .projectViews import ODKProjectListView
 from .submissionViews import (
     FormSubmissionDetailView,
     FormSubmissionsExportView,
     FormSubmissionsListView,
-    SubmissionsDataView
+    SubmissionsDataView,
 )
-from .userViews import AppUserCreateView, AppUserListView, AppUserRevokeView, AppUsersFormView, MatrixView
+from .userViews import (
+    AppUserCreateView,
+    AppUserListView,
+    AppUserRevokeView,
+    AppUsersFormView,
+    MatrixView,
+)
 
 __all__ = [
     "ODKProjectListView",

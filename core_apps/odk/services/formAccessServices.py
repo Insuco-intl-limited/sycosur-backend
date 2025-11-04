@@ -1,5 +1,6 @@
 import logging
 from typing import Dict, List, Optional
+
 from .baseService import BaseODKService
 from .exceptions import ODKValidationError
 from .permissionServices import ODKPermissionMixin
@@ -9,6 +10,7 @@ logger = logging.getLogger(__name__)
 
 class ODKPublicAccessService(BaseODKService, ODKPermissionMixin):
     """Service for managing ODK Public Access Links"""
+
     # Extract constants for better maintainability
     EXTENDED_METADATA_HEADER = "X-Extended-Metadata"
     TOKEN_PREVIEW_LENGTH = 10

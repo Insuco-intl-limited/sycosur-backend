@@ -1,11 +1,12 @@
+import base64
+import json
 import logging
 import os
-import json
 import zlib
-import base64
-import segno
 from io import BytesIO
+
 import requests
+import segno
 from dotenv import load_dotenv
 from urllib3.exceptions import InsecureRequestWarning
 
@@ -33,6 +34,7 @@ def get_ssl_verify():
 
     return verify_ssl
 
+
 def generate_odk_qr_code(server_url, app_user_token, project_id, project_name):
     """Génère un QR code pour la configuration ODK Collect"""
     # Préparation des données à encoder
@@ -41,9 +43,7 @@ def generate_odk_qr_code(server_url, app_user_token, project_id, project_name):
             "server_url": f"{server_url}/v1/key/{app_user_token}/projects/{project_id}"
         },
         "admin": {},
-        "project": {
-            "name": project_name
-        }
+        "project": {"name": project_name},
     }
     compressed = zlib.compress(json.dumps(settings).encode("utf-8"))
     qr_data = base64.b64encode(compressed)
@@ -51,9 +51,9 @@ def generate_odk_qr_code(server_url, app_user_token, project_id, project_name):
     # Génération du QR code
     qr = segno.make(qr_data, micro=False)
     buffer = BytesIO()
-    qr.save(buffer, kind='png', scale=5)
+    qr.save(buffer, kind="png", scale=5)
     buffer.seek(0)
 
     # Encodage base64 pour affichage web
-    img_base64 = base64.b64encode(buffer.read()).decode('utf-8')
+    img_base64 = base64.b64encode(buffer.read()).decode("utf-8")
     return img_base64

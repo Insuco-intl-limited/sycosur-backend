@@ -1,9 +1,10 @@
 import logging
 
+from django.http import HttpResponse
+
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from django.http import HttpResponse
 
 from core_apps.common.renderers import GenericJSONRenderer
 from core_apps.odk.services import ODKCentralService
@@ -150,7 +151,9 @@ class ProjectFormsListView(APIView):
                     forms = odk_service.get_project_forms(django_project.odk_id)
                     for form in forms:
                         form["publish"] = form.get("publishedAt") is not None
-                    return Response({"count":len(forms),"forms": forms}, status=status.HTTP_200_OK)
+                    return Response(
+                        {"count": len(forms), "forms": forms}, status=status.HTTP_200_OK
+                    )
                 except Exception as e:
                     raise e
         except Exception as e:
@@ -247,6 +250,7 @@ class FormDeleteView(APIView):
                 },
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+
 
 class FormXLSXDownloadView(ProjectValidationMixin, APIView):
     """Download the XLSX source of a Form from ODK Central and stream it to the client."""

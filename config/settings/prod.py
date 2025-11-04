@@ -10,7 +10,11 @@ SECRET_KEY = getenv(
 if not SECRET_KEY:
     raise ValueError("DJANGO_SECRET_KEY must be set in the environment.")
 
-CSRF_TRUSTED_ORIGINS = ["https://sycosur.insuco.net", "https://www.sycosur.insuco.net", "https://insuco.com"]
+CSRF_TRUSTED_ORIGINS = [
+    "https://sycosur.insuco.net",
+    "https://www.sycosur.insuco.net",
+    "https://insuco.com",
+]
 
 
 ALLOWED_HOSTS = [".insuco.net"]

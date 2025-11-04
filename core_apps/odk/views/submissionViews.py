@@ -1,12 +1,16 @@
 import logging
+
 from django.http import HttpResponse
+
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+
 from core_apps.common.renderers import GenericJSONRenderer
 from core_apps.odk.mixins import ProjectValidationMixin
 from core_apps.odk.services import ODKCentralService
 from core_apps.odk.services.exceptions import ODKValidationError
+
 logger = logging.getLogger(__name__)
 
 
@@ -30,13 +34,17 @@ class FormSubmissionsListView(ProjectValidationMixin, APIView):
                     )
 
                 submissions = odk_service.get_form_submissions(odk_project_id, form_id)
-                return Response({"count":len(submissions), "results": submissions}, status=status.HTTP_200_OK)
+                return Response(
+                    {"count": len(submissions), "results": submissions},
+                    status=status.HTTP_200_OK,
+                )
         except Exception as e:
             logger.error(f"Error getting form submissions: {e}")
             return Response(
                 {"error": "Unable to get form submissions", "detail": str(e)},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
 
 class FormSubmissionsExportView(ProjectValidationMixin, APIView):
     """Export all submissions of a form as CSV or XLSX"""
@@ -61,7 +69,9 @@ class FormSubmissionsExportView(ProjectValidationMixin, APIView):
 
                 if to not in ["csv", "xlsx"]:
                     return Response(
-                        {"error": "Invalid format. Supported formats are 'csv' and 'xlsx'."},
+                        {
+                            "error": "Invalid format. Supported formats are 'csv' and 'xlsx'."
+                        },
                         status=status.HTTP_400_BAD_REQUEST,
                     )
                 if to == "csv":
@@ -69,7 +79,9 @@ class FormSubmissionsExportView(ProjectValidationMixin, APIView):
                 else:
                     contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 
-                file_bytes = odk_service.export_submissions(odk_project_id, form_id, to=to)
+                file_bytes = odk_service.export_submissions(
+                    odk_project_id, form_id, to=to
+                )
                 response = HttpResponse(
                     file_bytes,
                     content_type=contentType,
@@ -117,6 +129,7 @@ class FormSubmissionDetailView(ProjectValidationMixin, APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+
 class SubmissionsDataView(ProjectValidationMixin, APIView):
 
     def get(self, request, project_id, form_id):
@@ -140,4 +153,3 @@ class SubmissionsDataView(ProjectValidationMixin, APIView):
                 {"error": "Unable to get submissions data", "detail": str(e)},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-

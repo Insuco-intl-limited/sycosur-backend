@@ -1,8 +1,10 @@
 import logging
 from typing import Dict, List
+
 from .baseService import BaseODKService
 from .exceptions import ODKValidationError
 from .permissionServices import ODKPermissionMixin
+
 logger = logging.getLogger(__name__)
 
 
@@ -18,7 +20,6 @@ class ODKFormService(BaseODKService, ODKPermissionMixin):
             raise PermissionError(
                 f"User {self.django_user.username} cannot access project {project_id}"
             )
-
 
     def get_project_forms(self, project_id: int) -> List[Dict]:
         """Retrieve forms for a specific project"""
@@ -52,9 +53,7 @@ class ODKFormService(BaseODKService, ODKPermissionMixin):
                     f"User {self.django_user.username} does not have access to project {project_id}"
                 )
 
-            return self._make_request(
-                "GET", f"projects/{project_id}/forms/{form_id}"
-            )
+            return self._make_request("GET", f"projects/{project_id}/forms/{form_id}")
         except Exception as e:
             self._log_action(
                 "get_form",
@@ -85,7 +84,12 @@ class ODKFormService(BaseODKService, ODKPermissionMixin):
                 "download_form_xlsx",
                 "form",
                 f"{project_id}/{form_id}",
-                {"error": str(e), "odk_account": self.current_account["id"] if self.current_account else None},
+                {
+                    "error": str(e),
+                    "odk_account": (
+                        self.current_account["id"] if self.current_account else None
+                    ),
+                },
                 success=False,
             )
             raise
@@ -292,7 +296,7 @@ class ODKFormService(BaseODKService, ODKPermissionMixin):
             )
             raise
 
-    def publish_draft(self, project_id: int, form_id: str, version: str = None) :
+    def publish_draft(self, project_id: int, form_id: str, version: str = None):
         """Publish a draft as a form version"""
         try:
             if not self._user_can_access_project_id(project_id):

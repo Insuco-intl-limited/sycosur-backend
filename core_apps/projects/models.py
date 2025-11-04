@@ -34,7 +34,7 @@ class Projects(TimeStampedModel):
         db_table = "projects"
         verbose_name = "Project"
         verbose_name_plural = "Projects"
-        ordering = ['-created_at', 'name']
+        ordering = ["-created_at", "name"]
 
     def __str__(self) -> str:
         return self.name

@@ -66,7 +66,9 @@ class ODKSubmissionService(BaseODKService, ODKPermissionMixin):
             )
             raise
 
-    def export_submissions(self, project_id: int, form_id: str, to:str="csv") -> bytes:
+    def export_submissions(
+        self, project_id: int, form_id: str, to: str = "csv"
+    ) -> bytes:
         """Exporte les soumissions d'un formulaire en CSV ou XLSX"""
         try:
             if not self._user_can_access_project_id(project_id):
@@ -79,13 +81,14 @@ class ODKSubmissionService(BaseODKService, ODKPermissionMixin):
                 return_json=False,
             )
             if to == "xlsx":
-                import pandas as pd
-                from io import StringIO, BytesIO
+                from io import BytesIO, StringIO
 
-                df = pd.read_csv(StringIO(result.decode('utf-8')))
+                import pandas as pd
+
+                df = pd.read_csv(StringIO(result.decode("utf-8")))
                 output = BytesIO()
-                with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-                    df.to_excel(writer, index=False, sheet_name='Submissions')
+                with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
+                    df.to_excel(writer, index=False, sheet_name="Submissions")
                 return output.getvalue()
 
             return result
@@ -134,4 +137,3 @@ class ODKSubmissionService(BaseODKService, ODKPermissionMixin):
                 },
                 success=False,
             )
-

@@ -13,7 +13,6 @@ class ODKCentralService(
     ODKSubmissionService,
     ODKAppUserService,
     ODKPublicAccessService,
-
 ):
 
     pass
@@ -28,5 +27,4 @@ __all__ = [
     "ODKPermissionMixin",
     "ODKAppUserService",
     "ODKPublicAccessService",
-
 ]

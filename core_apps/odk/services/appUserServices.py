@@ -1,8 +1,10 @@
 import logging
 from typing import Dict, List
+
 from .baseService import BaseODKService
 from .exceptions import ODKValidationError
 from .permissionServices import ODKPermissionMixin
+
 logger = logging.getLogger(__name__)
 
 
@@ -154,7 +156,7 @@ class ODKAppUserService(BaseODKService, ODKPermissionMixin):
             )
             raise
 
-    def assign_form_to_user(self, project_id: int, form_id: str, app_user_id: int) :
+    def assign_form_to_user(self, project_id: int, form_id: str, app_user_id: int):
         """Assign a form to an app user"""
         try:
             if not self._user_can_modify_project(project_id):
@@ -162,14 +164,15 @@ class ODKAppUserService(BaseODKService, ODKPermissionMixin):
                     f"User {self.django_user.username} has no modification right on the project"
                 )
             self._make_request(
-                "POST", f"projects/{project_id}/forms/{form_id}/assignments/app-user/{app_user_id}"
+                "POST",
+                f"projects/{project_id}/forms/{form_id}/assignments/app-user/{app_user_id}",
             )
         except ODKValidationError:
             raise
         except Exception as e:
             raise e
 
-    def unassgin_form_to_user(self, project_id: int, form_id: str, app_user_id: int) :
+    def unassgin_form_to_user(self, project_id: int, form_id: str, app_user_id: int):
         """Unassign a form from an app user"""
         try:
             if not self._user_can_modify_project(project_id):
@@ -177,14 +180,15 @@ class ODKAppUserService(BaseODKService, ODKPermissionMixin):
                     f"User {self.django_user.username} has no modification right on the project"
                 )
             self._make_request(
-                "DELETE", f"projects/{project_id}/forms/{form_id}/assignments/app-user/{app_user_id}"
+                "DELETE",
+                f"projects/{project_id}/forms/{form_id}/assignments/app-user/{app_user_id}",
             )
         except ODKValidationError:
             raise
         except Exception as e:
             raise e
 
-    def list_forms_app_users(self, project_id: int, form_id: str) :
+    def list_forms_app_users(self, project_id: int, form_id: str):
         """List all forms assigned to an app user"""
         try:
             self._validate_project_access(project_id)
@@ -196,7 +200,3 @@ class ODKAppUserService(BaseODKService, ODKPermissionMixin):
             raise
         except Exception as e:
             raise e
-
-
-
-
