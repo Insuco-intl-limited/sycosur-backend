@@ -145,6 +145,8 @@ class ODKFormService(BaseODKService, ODKPermissionMixin):
                 success=True,
             )
             return form
+        except ODKValidationError:
+            raise
         except Exception as e:
             self._log_action(
                 "create_form",

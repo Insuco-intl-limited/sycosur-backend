@@ -5,7 +5,7 @@ from django.http import HttpResponse
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
+from core_apps.odk.services.exceptions import ODKValidationError
 from core_apps.common.renderers import GenericJSONRenderer
 from core_apps.odk.services import ODKCentralService
 from core_apps.projects.models import Projects
@@ -59,25 +59,25 @@ class FormCreateView(APIView):
             form_data = form_file.read()
             form_id = request.query_params.get("form_id")
             ignore_warnings = (
-                request.query_params.get("ignore_warnings", "false") == "true"
+                request.query_params.get("ignore_warnings", "false").lower() == "true"
             )
-            publish = request.query_params.get("publish", "false") == "true"
+            publish = request.query_params.get("publish", "false").lower() == "true"
 
             # Appel du service ODK
             with ODKCentralService(request.user, request=request) as odk_service:
                 try:
                     # Check if django_project is a string before accessing odk_id attribute
-                    if isinstance(django_project, str):
-                        return Response(
-                            {"error": "Invalid project format"},
-                            status=status.HTTP_400_BAD_REQUEST,
-                        )
+                    # if isinstance(django_project, str):
+                    #     return Response(
+                    #         {"error": "Invalid project format"},
+                    #         status=status.HTTP_400_BAD_REQUEST,
+                    #     )
                     had_odk_project = django_project.odk_id is not None
 
                     odk_project_id = odk_service.ensure_odk_project_exists(
                         django_project
                     )
-                    logger.info("odk_project_id: %s", odk_project_id)
+                    # logger.info("odk_project_id: %s", odk_project_id)
                     if not had_odk_project:
                         created_new_odk_project = True
                     form = odk_service.create_form(
@@ -92,12 +92,26 @@ class FormCreateView(APIView):
                         request.user.id, odk_project_id
                     )
                     return Response({"form": form}, status=status.HTTP_201_CREATED)
+                except ODKValidationError as e:
+                    if created_new_odk_project:
+                        self.rollback_project_creation(
+                            odk_service, odk_project_id, django_project
+                        )
+                    return e.to_response(
+                        error_message="Form validation error",
+                        log_message=f"ODK validation error during form creation: {e}",
+                    )
                 except Exception as e:
                     if created_new_odk_project:
                         self.rollback_project_creation(
                             odk_service, odk_project_id, django_project
                         )
                     raise e
+        except ODKValidationError as e:
+            return e.to_response(
+                error_message="Form validation error",
+                log_message=f"ODK validation error during form creation: {e}",
+            )
         except Exception as e:
             logger.error(f"Error creating form: {e}")
             return Response(
