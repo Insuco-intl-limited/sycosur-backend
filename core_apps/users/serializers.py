@@ -1,5 +1,4 @@
 from django.contrib.auth import get_user_model
-
 from django_countries.serializer_fields import CountryField
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from phonenumber_field.serializerfields import PhoneNumberField
@@ -8,10 +7,54 @@ from rest_framework import serializers
 User = get_user_model()
 
 
-class CreateUserSerializer(UserCreateSerializer):
-    class Meta(UserCreateSerializer.Meta):
-        model = User
-        fields = ["id", "first_name", "last_name", "password"]
+class UserPermissionsSerializer(serializers.Serializer):
+    """Serializer pour exposer les permissions de l'utilisateur."""
+    is_admin = serializers.SerializerMethodField()
+    projects = serializers.SerializerMethodField()
+    # role = serializers.SerializerMethodField()
+
+
+    # def get_role(self, obj):
+    #     return obj.profile.odk_role
+
+    def get_is_admin(self, obj):
+        from core_apps.common.permissions_config import ADMIN_ROLES
+        return obj.profile.odk_role in ADMIN_ROLES
+
+    def get_projects(self, obj):
+        """Retourne les projets avec leurs niveaux de permissions."""
+        from core_apps.projects.models import Projects
+        from core_apps.projects.services import get_user_permission_level
+        from core_apps.common.permissions_config import ADMIN_ROLES, PERMISSION_SETS
+
+        user = obj
+
+        # Admin/Manager ont accès à tous les projets
+        if user.profile.odk_role in ADMIN_ROLES:
+            projects = Projects.objects.filter(deleted=False, archived=False)
+            return [
+                {
+                    'pkid': p.pkid,
+                    'name': p.name,
+                    'permission_level': 'manage',
+                    'permissions': list(PERMISSION_SETS['manage'])
+                }
+                for p in projects
+            ]
+
+        # Pour les autres utilisateurs, récupérer les permissions spécifiques
+        result = []
+        for project in Projects.objects.filter(deleted=False, archived=False):
+            level = get_user_permission_level(user, project)
+            if level:
+                result.append({
+                    'pkid': project.pkid,
+                    'name': project.name,
+                    'permission_level': level,
+                    'permissions': list(PERMISSION_SETS[level])
+                })
+
+        return result
 
 
 class CustomUserSerializer(UserSerializer):
@@ -23,6 +66,7 @@ class CustomUserSerializer(UserSerializer):
     country = CountryField(source="profile.country_of_origin")
     city = serializers.ReadOnlyField(source="profile.city_of_origin")
     avatar = serializers.ReadOnlyField(source="profile.avatar.url")
+    permissions = UserPermissionsSerializer(source='*', read_only=True)
 
     class Meta(UserSerializer.Meta):
         model = User
@@ -40,5 +84,12 @@ class CustomUserSerializer(UserSerializer):
             "city",
             "avatar",
             "date_joined",
+            "permissions",  # Nouveau champ
         ]
         read_only_fields = ["id", "email", "date_joined"]
+
+
+class CreateUserSerializer(UserCreateSerializer):
+    class Meta(UserCreateSerializer.Meta):
+        model = User
+        fields = ["id", "first_name", "last_name", "password"]
