@@ -1,16 +1,28 @@
 import logging
-
 from django.utils import timezone
-
 from rest_framework import generics, status
-from rest_framework.response import Response
-from rest_framework.views import APIView
-
 from core_apps.common.renderers import GenericJSONRenderer
 from core_apps.common.utils import log_audit_action
-
 from .models import Projects
-from .serializers import ProjectSerializer
+from .serializers import (ProjectSerializer, AssignProjectPermissionSerializer, ProjectPermissionUserSerializer)
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from django.shortcuts import get_object_or_404
+from django.contrib.auth import get_user_model
+from core_apps.common.permissions import HasProjectPermission
+from core_apps.common.permissions_config import ADMIN_ROLES
+from rest_framework.exceptions import PermissionDenied
+from guardian.shortcuts import get_objects_for_user
+
+User = get_user_model()
+
+from core_apps.projects.services import (
+    assign_project_permission,
+    revoke_project_permissions,
+    get_project_users_with_permissions,
+    can_assign_project_permissions
+)
+
 
 logger = logging.getLogger(__name__)
 
@@ -28,9 +40,10 @@ class ProjectListCreateView(generics.ListCreateAPIView):
     queryset = Projects.objects.filter(deleted=False, archived=False)
     serializer_class = ProjectSerializer
     renderer_classes = [GenericJSONRenderer]
+    permission_classes = [HasProjectPermission]
 
     def get_queryset(self):
-        """Return projects with default exclusions, optionally including deleted/archived."""
+        """Return only projects the user can access, with optional deleted/archived inclusion."""
 
         def _truthy(val: str) -> bool:
             if val is None:
@@ -40,7 +53,8 @@ class ProjectListCreateView(generics.ListCreateAPIView):
         include_deleted = _truthy(self.request.query_params.get("add_deleted"))
         include_archived = _truthy(self.request.query_params.get("add_archived"))
 
-        qs = Projects.objects.all()
+        # Restrict to projects the user has access to via object permissions
+        qs = get_objects_for_user(self.request.user, 'projects.access_project', klass=Projects)
         if not include_deleted:
             qs = qs.filter(deleted=False)
         if not include_archived:
@@ -63,8 +77,13 @@ class ProjectListCreateView(generics.ListCreateAPIView):
     #     return Response({"detail":"Project created"}, status=status.HTTP_201_CREATED)
 
     def perform_create(self, serializer):
-        """Save the project"""
-        project = serializer.save()
+        """Create a project; allow if user has global add_projects or is admin/manager."""
+        user = self.request.user
+        role = getattr(getattr(user, 'profile', None), 'odk_role', None)
+        has_global_create = user.has_perm('projects.add_projects')
+        if not has_global_create and role not in ['administrator', 'manager']:
+            raise PermissionDenied("Not allowed to create projects")
+        serializer.save(created_by=user)
 
 
 class ProjectDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -74,10 +93,10 @@ class ProjectDetailView(generics.RetrieveUpdateDestroyAPIView):
     PUT/PATCH: Update a project
     DELETE: Delete a project
     """
-
     queryset = Projects.objects.filter(deleted=False)
     serializer_class = ProjectSerializer
     lookup_field = "pkid"
+    permission_classes = [HasProjectPermission]
 
     def get_renderers(self):
         if self.request.method in ["PUT", "PATCH", "GET"]:
@@ -108,6 +127,8 @@ class ProjectDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 
 class ProjectArchiveView(APIView):
+    permission_classes = [HasProjectPermission]
+    required_permission = 'projects.archive_project'
 
     def patch(self, request, pk, *args, **kwargs):
         try:
@@ -117,6 +138,9 @@ class ProjectArchiveView(APIView):
                 {"detail": "Project not found."}, status=status.HTTP_404_NOT_FOUND
             )
 
+        # Object-level permission check
+        self.check_object_permissions(request, project)
+
         project.archived = True
         project.archived_at = timezone.now()
         project.save()
@@ -125,6 +149,8 @@ class ProjectArchiveView(APIView):
 
 
 class ProjectUnarchiveView(APIView):
+    permission_classes = [HasProjectPermission]
+    required_permission = 'projects.archive_project'
     def patch(self, request, pk, *args, **kwargs):
         try:
             project = Projects.objects.get(pkid=pk, deleted=False, archived=True)
@@ -133,6 +159,9 @@ class ProjectUnarchiveView(APIView):
                 {"detail": "Project not found in archived projects."},
                 status=status.HTTP_404_NOT_FOUND,
             )
+
+        # Object-level permission check
+        self.check_object_permissions(request, project)
 
         project.archived = False
         project.archived_at = None
@@ -152,6 +181,8 @@ class ProjectUnarchiveView(APIView):
 
 
 class ProjectRestoreView(APIView):
+    permission_classes = [HasProjectPermission]
+    required_permission = 'projects.restore_project'
     def patch(self, request, pk, *args, **kwargs):
         try:
             project = Projects.objects.get(pkid=pk, deleted=True)
@@ -160,6 +191,9 @@ class ProjectRestoreView(APIView):
                 {"detail": "Project not found in deleted projects."},
                 status=status.HTTP_404_NOT_FOUND,
             )
+
+        # Object-level permission check
+        self.check_object_permissions(request, project)
 
         project.deleted = False
         project.deleted_at = None
@@ -175,3 +209,86 @@ class ProjectRestoreView(APIView):
             request=request,
         )
         return Response({"detail": "Project Restored"}, status=status.HTTP_200_OK)
+
+#=====================================================================================
+# ===============PROJECT PERMISSION MANAGEMENT========================================
+# ====================================================================================
+# TODO: à Revoir
+
+class ProjectPermissionAssignView(APIView):
+    """Assigner des permissions à un utilisateur pour un projet."""
+    permission_classes = [HasProjectPermission]
+    required_permission = 'projects.manage_project'
+
+    def post(self, request, pkid):
+        project = get_object_or_404(Projects, pkid=pkid, deleted=False)
+
+        # Object-level permission check via DRF permission class
+        self.check_object_permissions(request, project)
+        
+        # Additional check: verify actor can assign permissions (object OR global manage_project)
+        if not can_assign_project_permissions(request.user, project):
+            raise PermissionDenied("You do not have the right to assign permissions for this project")
+
+        serializer = AssignProjectPermissionSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        user = User.objects.get(id=serializer.validated_data['user_id'])
+        level = serializer.validated_data['permission_level']
+
+        try:
+            assign_project_permission(user, project, level)
+            return Response({
+                "user_id": str(user.id),
+                "project_id": project.pkid,
+                "permission_level": level
+            }, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+
+class ProjectPermissionRevokeView(APIView):
+    """Révoquer les permissions d'un utilisateur pour un projet."""
+    permission_classes = [HasProjectPermission]
+    required_permission = 'projects.manage_project'
+
+    def delete(self, request, pkid, user_id):
+        project = get_object_or_404(Projects, pkid=pkid, deleted=False)
+
+        # Object-level permission check via DRF permission class
+        self.check_object_permissions(request, project)
+
+        user = get_object_or_404(User, id=user_id)
+        revoke_project_permissions(user, project)
+
+        return Response(
+            status=status.HTTP_204_NO_CONTENT
+        )
+
+
+class ProjectPermissionListView(APIView):
+    """Lister tous les utilisateurs avec leurs permissions pour un projet."""
+    permission_classes = [HasProjectPermission]
+    required_permission = 'projects.access_project'
+
+    def get(self, request, pkid):
+        project = get_object_or_404(Projects, pkid=pkid, deleted=False)
+
+        # Object-level permission check via DRF permission class
+        self.check_object_permissions(request, project)
+
+        users_with_perms = get_project_users_with_permissions(project)
+
+        # Sérialiser les utilisateurs
+        users_list = list(users_with_perms.keys())
+        serializer = ProjectPermissionUserSerializer(
+            users_list,
+            many=True,
+            context={'project': project}
+        )
+
+        return Response({"users": serializer.data}, status=status.HTTP_200_OK)

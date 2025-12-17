@@ -1,6 +1,10 @@
 from rest_framework import serializers
+from .models import  Projects
+from rest_framework import serializers
+from django.contrib.auth import get_user_model
+from core_apps.common.permissions_config import PERMISSION_SETS
 
-from .models import ProjectPermissions, Projects
+User = get_user_model()
 
 
 class ProjectSerializer(serializers.ModelSerializer):
@@ -41,46 +45,31 @@ class ProjectSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
 
 
-class ProjectPermissionSerializer(serializers.ModelSerializer):
-    """Sérialiseur pour les permissions de projet ODK"""
+class AssignProjectPermissionSerializer(serializers.Serializer):
+    """Serializer pour assigner des permissions à un utilisateur."""
+    user_id = serializers.UUIDField()
+    permission_level = serializers.ChoiceField(
+        choices=list(PERMISSION_SETS.keys())
+    )
 
-    user_email = serializers.ReadOnlyField(source="user.email")
-    user_full_name = serializers.SerializerMethodField()
-    project_name = serializers.ReadOnlyField(source="project.name")
-    granted_by_name = serializers.SerializerMethodField()
+    def validate_user_id(self, value):
+        if not User.objects.filter(id=value).exists():
+            raise serializers.ValidationError("User not found")
+        return value
+
+
+class ProjectPermissionUserSerializer(serializers.ModelSerializer):
+    """Serializer pour afficher un utilisateur avec ses permissions."""
+    full_name = serializers.ReadOnlyField(source='get_full_name')
+    permission_level = serializers.SerializerMethodField()
 
     class Meta:
-        model = ProjectPermissions
-        fields = [
-            "id",
-            "user",
-            "user_email",
-            "user_full_name",
-            "project",
-            "project_name",
-            "permission_level",
-            "granted_by",
-            "granted_by_name",
-            "created_at",
-        ]
-        read_only_fields = [
-            "id",
-            "user_email",
-            "user_full_name",
-            "project_name",
-            "granted_by_name",
-            "created_at",
-        ]
+        model = User
+        fields = ['id', 'email', 'full_name', 'permission_level']
 
-    def get_user_full_name(self, obj):
-        return obj.user.get_full_name()
-
-    def get_granted_by_name(self, obj):
-        if obj.granted_by:
-            return obj.granted_by.get_full_name()
+    def get_permission_level(self, obj):
+        project = self.context.get('project')
+        if project:
+            from core_apps.projects.services import get_user_permission_level
+            return get_user_permission_level(obj, project)
         return None
-
-    def validate(self, attrs):
-        # S'assurer que l'utilisateur actuel est défini comme celui qui accorde la permission
-        attrs["granted_by"] = self.context["request"].user
-        return attrs
