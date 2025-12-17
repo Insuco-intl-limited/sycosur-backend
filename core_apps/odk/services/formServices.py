@@ -1,34 +1,20 @@
 import logging
 from typing import Dict, List
-
 from .baseService import BaseODKService
 from .exceptions import ODKValidationError
-from .permissionServices import ODKPermissionMixin
 
 logger = logging.getLogger(__name__)
 
 
-class ODKFormService(BaseODKService, ODKPermissionMixin):
+class ODKFormService(BaseODKService):
     """Service for ODK forms management"""
 
     def __init__(self, django_user, request=None):
         super().__init__(django_user, request=request)
 
-    def _validate_project_access(self, project_id: int) -> None:
-        """Extract common permission validation logic"""
-        if not self._user_can_access_project_id(project_id):
-            raise PermissionError(
-                f"User {self.django_user.username} cannot access project {project_id}"
-            )
-
     def get_project_forms(self, project_id: int) -> List[Dict]:
         """Retrieve forms for a specific project"""
         try:
-            if not self._user_can_access_project_id(project_id):
-                raise PermissionError(
-                    f"User {self.django_user.username} does not have access to project {project_id}"
-                )
-
             return self._make_request("GET", f"projects/{project_id}/forms")
         except Exception as e:
             self._log_action(
@@ -48,11 +34,6 @@ class ODKFormService(BaseODKService, ODKPermissionMixin):
     def get_form(self, project_id: int, form_id: str) -> Dict:
         """Retrieve a specific form"""
         try:
-            if not self._user_can_access_project_id(project_id):
-                raise PermissionError(
-                    f"User {self.django_user.username} does not have access to project {project_id}"
-                )
-
             return self._make_request("GET", f"projects/{project_id}/forms/{form_id}")
         except Exception as e:
             self._log_action(
@@ -71,7 +52,6 @@ class ODKFormService(BaseODKService, ODKPermissionMixin):
 
     def download_form_xlsx(self, project_id: int, form_id: str) -> bytes:
         try:
-            self._validate_project_access(project_id)
             return self._make_request(
                 "GET",
                 f"projects/{project_id}/forms/{form_id}.xlsx",
@@ -105,10 +85,6 @@ class ODKFormService(BaseODKService, ODKPermissionMixin):
     ) -> dict:
 
         try:
-            if not self._user_can_access_project_id(project_id):
-                raise PermissionError(
-                    f"User {self.django_user.username} does not have access to project {project_id}"
-                )
             # Determine Content-Type based on extension
             if filename.endswith(".xlsx"):
                 content_type = (
@@ -165,11 +141,6 @@ class ODKFormService(BaseODKService, ODKPermissionMixin):
     def delete_form(self, project_id: int, form_id: str) -> Dict:
         """Delete a specific form (move to trash)"""
         try:
-            if not self._user_can_access_project_id(project_id):
-                raise PermissionError(
-                    f"User {self.django_user.username} does not have access to project {project_id}"
-                )
-
             result = self._make_request(
                 "DELETE", f"projects/{project_id}/forms/{form_id}"
             )
@@ -204,11 +175,6 @@ class ODKFormService(BaseODKService, ODKPermissionMixin):
     def get_form_draft(self, project_id: int, form_id: str) -> Dict:
         """Retrieve form draft details"""
         try:
-            if not self._user_can_access_project_id(project_id):
-                raise PermissionError(
-                    f"User {self.django_user.username} does not have access to project {project_id}"
-                )
-
             draft_data = self._make_request(
                 "GET", f"projects/{project_id}/forms/{form_id}/draft"
             )
@@ -242,11 +208,6 @@ class ODKFormService(BaseODKService, ODKPermissionMixin):
     ) -> Dict:
         """Create or update a form draft"""
         try:
-            if not self._user_can_access_project_id(project_id):
-                raise PermissionError(
-                    f"User {self.django_user.username} does not have access to project {project_id}"
-                )
-
             # Determine Content-Type based on extension
             if filename.endswith(".xlsx"):
                 content_type = (
@@ -301,11 +262,6 @@ class ODKFormService(BaseODKService, ODKPermissionMixin):
     def publish_draft(self, project_id: int, form_id: str, version: str = None):
         """Publish a draft as a form version"""
         try:
-            if not self._user_can_access_project_id(project_id):
-                raise PermissionError(
-                    f"User {self.django_user.username} does not have access to project {project_id}"
-                )
-
             params = {}
             if version:
                 params["version"] = version
@@ -336,11 +292,6 @@ class ODKFormService(BaseODKService, ODKPermissionMixin):
     def delete_draft(self, project_id: int, form_id: str) -> Dict:
         """Delete a form draft"""
         try:
-            if not self._user_can_access_project_id(project_id):
-                raise PermissionError(
-                    f"User {self.django_user.username} does not have access to project {project_id}"
-                )
-
             result = self._make_request(
                 "DELETE", f"projects/{project_id}/forms/{form_id}/draft"
             )
@@ -372,11 +323,6 @@ class ODKFormService(BaseODKService, ODKPermissionMixin):
     def get_draft_submissions(self, project_id: int, form_id: str) -> List[Dict]:
         """Get test submissions for a draft"""
         try:
-            if not self._user_can_access_project_id(project_id):
-                raise PermissionError(
-                    f"User {self.django_user.username} does not have access to project {project_id}"
-                )
-
             return self._make_request(
                 "GET", f"projects/{project_id}/forms/{form_id}/draft/submissions"
             )
@@ -398,10 +344,6 @@ class ODKFormService(BaseODKService, ODKPermissionMixin):
     def get_form_versions(self, project_id: int, form_id: str) -> List[Dict]:
         """Get all published versions of a form"""
         try:
-            if not self._user_can_access_project_id(project_id):
-                raise PermissionError(
-                    f"User {self.django_user.username} does not have access to project {project_id}"
-                )
             versions = self._make_request(
                 "GET", f"projects/{project_id}/forms/{form_id}/versions"
             )
@@ -426,11 +368,6 @@ class ODKFormService(BaseODKService, ODKPermissionMixin):
     def get_form_version_xml(self, project_id: int, form_id: str, version: str) -> str:
         """Get XML for a specific form version"""
         try:
-            if not self._user_can_access_project_id(project_id):
-                raise PermissionError(
-                    f"User {self.django_user.username} does not have access to project {project_id}"
-                )
-
             xml_data = self._make_request(
                 "GET",
                 f"projects/{project_id}/forms/{form_id}/versions/{version}.xml",

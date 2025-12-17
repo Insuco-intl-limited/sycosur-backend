@@ -3,28 +3,19 @@ from typing import Dict, List
 
 from .baseService import BaseODKService
 from .exceptions import ODKValidationError
-from .permissionServices import ODKPermissionMixin
 
 logger = logging.getLogger(__name__)
 
 
-class ODKAppUserService(BaseODKService, ODKPermissionMixin):
+class ODKAppUserService(BaseODKService):
     """Service pour la gestion des utilisateurs d'application ODK (App Users)"""
 
     def __init__(self, django_user, request=None):
         super().__init__(django_user, request=request)
 
-    def _validate_project_access(self, project_id: int) -> None:
-        """Extract common permission validation logic"""
-        if not self._user_can_access_project_id(project_id):
-            raise PermissionError(
-                f"User {self.django_user.username} cannot access project {project_id}"
-            )
-
     def get_project_app_users(self, project_id: int):
         """Récupère tous les utilisateurs d'application d'un projet spécifique"""
         try:
-            self._validate_project_access(project_id)
             app_users_data = self._make_request(
                 "GET", f"projects/{project_id}/app-users"
             )
@@ -48,11 +39,6 @@ class ODKAppUserService(BaseODKService, ODKPermissionMixin):
     def create_app_user(self, project_id: int, display_name: str) -> Dict:
         """Crée un nouvel utilisateur d'application pour un projet"""
         try:
-            if not self._user_can_modify_project(project_id):
-                raise PermissionError(
-                    f"L'utilisateur {self.django_user.username} n'a pas les droits pour modifier le projet {project_id}"
-                )
-
             payload = {"displayName": display_name}
             app_user = self._make_request(
                 "POST", f"projects/{project_id}/app-users", json=payload
@@ -89,10 +75,6 @@ class ODKAppUserService(BaseODKService, ODKPermissionMixin):
     def delete_app_user(self, project_id: int, app_user_id: str) -> bool:
         """Supprime un utilisateur d'application"""
         try:
-            if not self._user_can_modify_project(project_id):
-                raise PermissionError(
-                    f"User {self.django_user.username} has no modification right on the project"
-                )
             self._make_request(
                 "DELETE", f"projects/{project_id}/app-users/{app_user_id}"
             )
@@ -123,10 +105,6 @@ class ODKAppUserService(BaseODKService, ODKPermissionMixin):
     def revoke_app_user_access(self, project_id: int, token) -> bool:
         """Révoque l'accès d'un utilisateur d'application sans le supprimer"""
         try:
-            if not self._user_can_modify_project(project_id):
-                raise PermissionError(
-                    f"L'utilisateur {self.django_user.username} n'a pas les droits pour modifier le projet {project_id}"
-                )
             if not token or len(token) != 64:
                 raise ValueError("Invalid token format")
 
@@ -159,10 +137,6 @@ class ODKAppUserService(BaseODKService, ODKPermissionMixin):
     def assign_form_to_user(self, project_id: int, form_id: str, app_user_id: int):
         """Assign a form to an app user"""
         try:
-            if not self._user_can_modify_project(project_id):
-                raise PermissionError(
-                    f"User {self.django_user.username} has no modification right on the project"
-                )
             self._make_request(
                 "POST",
                 f"projects/{project_id}/forms/{form_id}/assignments/app-user/{app_user_id}",
@@ -175,10 +149,6 @@ class ODKAppUserService(BaseODKService, ODKPermissionMixin):
     def unassgin_form_to_user(self, project_id: int, form_id: str, app_user_id: int):
         """Unassign a form from an app user"""
         try:
-            if not self._user_can_modify_project(project_id):
-                raise PermissionError(
-                    f"User {self.django_user.username} has no modification right on the project"
-                )
             self._make_request(
                 "DELETE",
                 f"projects/{project_id}/forms/{form_id}/assignments/app-user/{app_user_id}",
@@ -191,7 +161,6 @@ class ODKAppUserService(BaseODKService, ODKPermissionMixin):
     def list_forms_app_users(self, project_id: int, form_id: str):
         """List all forms assigned to an app user"""
         try:
-            self._validate_project_access(project_id)
             forms_data = self._make_request(
                 "GET", f"projects/{project_id}/forms/{form_id}/assignments/app-user"
             )
