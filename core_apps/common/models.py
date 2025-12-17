@@ -1,5 +1,4 @@
 import uuid
-
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -57,8 +56,8 @@ class AuditLogs(TimeStampedModel):
 
     class Meta:
         db_table = "audit_logs"
-        verbose_name = "Sycosur Audit Log"
-        verbose_name_plural = "Sycosur Audit Logs"
+        verbose_name = "Audit Log"
+        verbose_name_plural = "Audit Logs"
 
     def __str__(self) -> str:
         status = "succeeded" if self.success else "failed"
