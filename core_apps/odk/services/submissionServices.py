@@ -2,10 +2,9 @@ from typing import Dict, List
 
 from .baseService import BaseODKService
 from .exceptions import ODKValidationError
-from .permissionServices import ODKPermissionMixin
 
 
-class ODKSubmissionService(BaseODKService, ODKPermissionMixin):
+class ODKSubmissionService(BaseODKService):
     """Service pour la gestion des soumissions ODK"""
 
     def __init__(self, django_user, request=None):
@@ -14,10 +13,6 @@ class ODKSubmissionService(BaseODKService, ODKPermissionMixin):
     def get_form_submissions(self, project_id: int, form_id: str) -> List[Dict]:
         """Récupère les soumissions d'un formulaire spécifique"""
         try:
-            if not self._user_can_access_project_id(project_id):
-                raise PermissionError(
-                    f"L'utilisateur {self.django_user.username} n'a pas accès au projet {project_id}"
-                )
             return self._make_request(
                 "GET",
                 f"projects/{project_id}/forms/{form_id}/submissions",
@@ -41,11 +36,6 @@ class ODKSubmissionService(BaseODKService, ODKPermissionMixin):
     def get_submission(self, project_id: int, form_id: str, instance_id: str) -> Dict:
         """Récupère une soumission spécifique"""
         try:
-            if not self._user_can_access_project_id(project_id):
-                raise PermissionError(
-                    f"L'utilisateur {self.django_user.username} n'a pas accès au projet {project_id}"
-                )
-
             return self._make_request(
                 "GET",
                 f"projects/{project_id}/forms/{form_id}/submissions/{instance_id}",
@@ -71,10 +61,6 @@ class ODKSubmissionService(BaseODKService, ODKPermissionMixin):
     ) -> bytes:
         """Exporte les soumissions d'un formulaire en CSV ou XLSX"""
         try:
-            if not self._user_can_access_project_id(project_id):
-                raise PermissionError(
-                    f"L'utilisateur {self.django_user.username} n'a pas accès au projet {project_id}"
-                )
             result = self._make_request(
                 "POST",
                 f"projects/{project_id}/forms/{form_id}/submissions.csv",
@@ -112,10 +98,6 @@ class ODKSubmissionService(BaseODKService, ODKPermissionMixin):
 
     def submissions_data(self, project_id: int, form_id: str):
         try:
-            if not self._user_can_access_project_id(project_id):
-                raise PermissionError(
-                    f"User {self.django_user.username} has not access to project {project_id}"
-                )
             headers = {"content-type": "application/json"}
             return self._make_request(
                 "GET",
