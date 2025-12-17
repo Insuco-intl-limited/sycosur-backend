@@ -1,9 +1,7 @@
 from datetime import timedelta
 from os import getenv, path
 from pathlib import Path
-
 from dotenv import load_dotenv
-
 from config.env import CUR_ENV_FILE
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -40,6 +38,7 @@ THIRD_PARTY_APPS = [
     "social_django",
     "django_filters",
     "djcelery_email",
+    "guardian",
     # "django_celery_beat",
 ]
 
@@ -242,7 +241,7 @@ REST_FRAMEWORK = {
     ),
     "DEFAULT_THROTTLE_RATES": {
         "anon": "200/day",
-        "user": "10000/day",
+        "user": "1000000/day",
     },
     # 'DEFAULT_RENDERER_CLASSES': [
     #     'core_apps.common.renderers.GenericJSONRenderer',
@@ -300,6 +299,7 @@ SOCIAL_AUTH_PIPELINE = [
 AUTHENTICATION_BACKENDS = [
     "social_core.backends.google.GoogleOAuth2",
     "django.contrib.auth.backends.ModelBackend",
+    "guardian.backends.ObjectPermissionBackend",
 ]
 # Google Drive settings
 GOOGLE_SERVICE_ACCOUNT_FILE = path.join(
@@ -319,3 +319,7 @@ ODK_ADMIN_PASSWORD = "INSUCO2520"
 
 ODK_ADMIN_EMAIL2 = getenv("ODK_ADMIN_EMAIL2")
 ODK_ADMIN_PASSWORD2 = getenv("ODK_ADMIN_PASSWORD2")
+
+# Guardian settings
+ANONYMOUS_USER_NAME = 'AnonymousUser'
+GUARDIAN_RENDER_403 = True  # Page d'erreur personnalisable
