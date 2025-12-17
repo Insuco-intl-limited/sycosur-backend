@@ -32,7 +32,7 @@ class ODKProjectListView(APIView):
         # Sinon, récupère depuis ODK avec le pool de comptes
         try:
             with ODKCentralService(request.user, request=request) as odk_service:
-                projects = odk_service.get_accessible_projects()
+                projects = odk_service.get_projects()
 
                 # Met en cache le résultat
                 ODKCacheManager.cache_user_projects(request.user.id, projects)

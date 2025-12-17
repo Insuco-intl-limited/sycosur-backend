@@ -1,16 +1,12 @@
 import logging
-
 from django.http import HttpResponse
-
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
 from core_apps.common.renderers import GenericJSONRenderer
 from core_apps.odk.services import ODKCentralService
 from core_apps.odk.services.exceptions import ODKValidationError
 from core_apps.projects.models import Projects
-
 from ..cache import ODKCacheManager
 
 logger = logging.getLogger(__name__)

@@ -163,8 +163,13 @@ class ProjectFormsListView(APIView):
             with ODKCentralService(request.user, request=request) as odk_service:
                 try:
                     forms = odk_service.get_project_forms(django_project.odk_id)
+
                     for form in forms:
                         form["publish"] = form.get("publishedAt") is not None
+                        if form.get("publishedAt") is None:
+                            form["submissions"] = 0
+                        else:
+                            form["submissions"]= len(odk_service.get_form_submissions(django_project.odk_id, form["xmlFormId"]))
                     return Response(
                         {"count": len(forms), "forms": forms}, status=status.HTTP_200_OK
                     )
