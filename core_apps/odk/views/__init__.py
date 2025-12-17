@@ -1,4 +1,4 @@
-from .accessViews import CreateListAccessView
+from .accessViews import CreateListAccessView, RevokeAccessLinkView
 from .draftViews import (
     FormDraftPublishView,
     FormDraftSubmissionsView,
@@ -46,6 +46,7 @@ __all__ = [
     "FormSubmissionsExportView",
     "FormSubmissionDetailView",
     "CreateListAccessView",
+    "RevokeAccessLinkView",
     "AppUsersFormView",
     "MatrixView",
     "SubmissionsDataView",

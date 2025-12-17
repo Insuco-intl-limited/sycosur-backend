@@ -3,7 +3,6 @@ import logging
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
 from core_apps.common.renderers import GenericJSONRenderer
 from core_apps.odk.mixins import ProjectValidationMixin
 from core_apps.odk.serializers import PublicLinkCreateSerializer
@@ -14,7 +13,6 @@ logger = logging.getLogger(__name__)
 
 class CreateListAccessView(ProjectValidationMixin, APIView):
     """Handles creation and listing of public access links for ODK forms"""
-
     renderer_classes = [
         GenericJSONRenderer,
     ]
@@ -39,7 +37,6 @@ class CreateListAccessView(ProjectValidationMixin, APIView):
                         {"error": "Project is not associated with ODK"},
                         status=status.HTTP_404_NOT_FOUND,
                     )
-
                 access_links = odk_service.list_public_links(
                     odk_project_id, form_id, extended
                 )
@@ -87,24 +84,12 @@ class CreateListAccessView(ProjectValidationMixin, APIView):
             )
 
 
-class DeleteAccessLinkView(ProjectValidationMixin, APIView):
-    """Handles deletion of a specific public access link for ODK forms"""
-
-    def delete(self, request, project_id, form_id, link_id):
-        project, error_response = self.validate_project(project_id)
-        if error_response:
-            return error_response
-
+class RevokeAccessLinkView(APIView):
+    """Handles revocation of a specific public access link for ODK forms"""
+    def delete(self, request, token):
         try:
             with ODKCentralService(request.user, request=request) as odk_service:
-                odk_project_id = project.odk_id
-                if not odk_project_id:
-                    return Response(
-                        {"error": "Project is not associated with ODK"},
-                        status=status.HTTP_404_NOT_FOUND,
-                    )
-
-                odk_service.delete_public_link(odk_project_id, form_id, link_id)
+                odk_service.revoke_public_link(token)
                 return Response(status=status.HTTP_204_NO_CONTENT)
         except Exception as e:
             logger.error(f"Error deleting form access link: {e}")

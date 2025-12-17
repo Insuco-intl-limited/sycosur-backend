@@ -1,14 +1,12 @@
 import logging
 from typing import Dict, List, Optional
-
 from .baseService import BaseODKService
 from .exceptions import ODKValidationError
-from .permissionServices import ODKPermissionMixin
 
 logger = logging.getLogger(__name__)
 
 
-class ODKPublicAccessService(BaseODKService, ODKPermissionMixin):
+class ODKPublicAccessService(BaseODKService):
     """Service for managing ODK Public Access Links"""
 
     # Extract constants for better maintainability
@@ -18,13 +16,6 @@ class ODKPublicAccessService(BaseODKService, ODKPermissionMixin):
 
     def __init__(self, django_user, request=None):
         super().__init__(django_user, request=request)
-
-    def _validate_project_access(self, project_id: int) -> None:
-        """Extract common permission validation logic"""
-        if not self._user_can_access_project_id(project_id):
-            raise PermissionError(
-                f"User {self.django_user.username} cannot access project {project_id}"
-            )
 
     def _get_enketo_id(self, project_id: int, form_id: str) -> Optional[str]:
         """Extract EnketoId retrieval logic"""
@@ -52,8 +43,6 @@ class ODKPublicAccessService(BaseODKService, ODKPermissionMixin):
         self, project_id: int, form_id: str, display_name: str, once: bool = False
     ) -> Dict:
         """Create a new Public Access Link for a form"""
-        self._validate_project_access(project_id)
-
         payload = {"displayName": display_name, "once": once}
         link_data = self._make_request(
             "POST", f"projects/{project_id}/forms/{form_id}/public-links", json=payload
@@ -80,8 +69,6 @@ class ODKPublicAccessService(BaseODKService, ODKPermissionMixin):
         self, project_id: int, form_id: str, extended: bool = False
     ) -> List[Dict]:
         """List all Public Access Links for a form"""
-        self._validate_project_access(project_id)
-
         headers = {self.EXTENDED_METADATA_HEADER: "true"} if extended else {}
         links_data = self._make_request(
             "GET",
@@ -105,7 +92,7 @@ class ODKPublicAccessService(BaseODKService, ODKPermissionMixin):
             "public_link",
             token,
             {
-                "token": f"{token[:self.TOKEN_PREVIEW_LENGTH]}...",
+                "token": f"{token}",
                 "odk_account": self._get_current_account_id(),
             },
             success=True,
