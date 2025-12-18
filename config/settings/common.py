@@ -39,6 +39,8 @@ THIRD_PARTY_APPS = [
     "django_filters",
     "djcelery_email",
     "guardian",
+    # 'rest_flex_fields',
+    # 'django_odata',
     # "django_celery_beat",
 ]
 
@@ -323,3 +325,11 @@ ODK_ADMIN_PASSWORD2 = getenv("ODK_ADMIN_PASSWORD2")
 # Guardian settings
 ANONYMOUS_USER_NAME = 'AnonymousUser'
 GUARDIAN_RENDER_403 = True  # Page d'erreur personnalisable
+
+# DJANGO_ODATA = {
+#     'SERVICE_ROOT': '/odata/',  # Base URL for OData endpoints
+#     'MAX_PAGE_SIZE': 1000,     # Prevent overload
+#     'DEFAULT_PAGE_SIZE': 50,
+#     'ENABLE_METADATA': True,   # Expose $metadata endpoint
+#     'ENABLE_SERVICE_DOCUMENT': True,  # Expose service document
+# }
